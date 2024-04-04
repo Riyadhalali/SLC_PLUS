@@ -71,6 +71,8 @@ ADC_HandleTypeDef hadc1;
 
 I2C_HandleTypeDef hi2c1;
 
+IWDG_HandleTypeDef hiwdg;
+
 RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim1;
@@ -191,6 +193,7 @@ static void MX_TIM4_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_RTC_Init(void);
+static void MX_IWDG_Init(void);
 /* USER CODE BEGIN PFP */
 void SetupProgram(void);
 void CheckForSet(void);
@@ -998,6 +1001,8 @@ while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 	 )
 {
 
+    HAL_IWDG_Refresh(&hiwdg);
+
 	 sprintf((char*)txt,"[1] H:%02d-M:%02d",hours_lcd_1,minutes_lcd_1);
 	// lcd_puts(0,0,txt);
 	 LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1031,6 +1036,8 @@ HAL_Delay(500);
 while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 	&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 {
+
+    HAL_IWDG_Refresh(&hiwdg);
 	 sprintf((char*)txt,"[1] H:%02d-M:%02d",hours_lcd_1,minutes_lcd_1);
 	// lcd_puts(0,0,txt);
 	 LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1074,6 +1081,8 @@ void SetTimerOff_1()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 		&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf((char*)txt,"[2] H:%02d-M:%02d",hours_lcd_2,minutes_lcd_2);
 		 //lcd_puts(0,0,txt);
 		 LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1105,6 +1114,8 @@ void SetTimerOff_1()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf((char*)txt,"[2] H:%02d-M:%02d",hours_lcd_2,minutes_lcd_2);
 		// lcd_puts(0,0,txt);
 		 LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1146,6 +1157,8 @@ void SetTimerOn_2()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf((char*)txt,"[3] H:%02d-M:%02d",hours_lcd_timer2_start,minutes_lcd_timer2_start);
 		// lcd_puts(0,0,txt);
 			LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1178,6 +1191,8 @@ void SetTimerOn_2()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf((char*)txt,"[3] H:%02d-M:%02d",hours_lcd_timer2_start,minutes_lcd_timer2_start);
 		// lcd_puts(0,0,txt);
 			LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1219,6 +1234,8 @@ void SetTimerOff_2()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf((char*)txt,"[4] H:%02d-M:%02d",hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
 		// lcd_puts(0,0,txt);
 			LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1252,6 +1269,8 @@ void SetTimerOff_2()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf((char*)txt,"[4] H:%02d-M:%02d",hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
 		// lcd_puts(0,0,txt);
 
@@ -1294,8 +1313,10 @@ void SetTimerOn_3()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf((char*)txt,"[5] H:%02d-M:%02d",hours_lcd_timer3_start,minutes_lcd_timer3_start);
-			// lcd_puts(0,0,txt);
+
 
 				LCD16X2_Set_Cursor(MyLCD,1,1);
 				 LCD16X2_Write_String(MyLCD,txt);
@@ -1327,9 +1348,9 @@ void SetTimerOn_3()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf((char*)txt,"[5] H:%02d-M:%02d",hours_lcd_timer3_start,minutes_lcd_timer3_start);
-			// lcd_puts(0,0,txt);
-				//LCD16X2_Clear(MyLCD);
 				LCD16X2_Set_Cursor(MyLCD,1,1);
 				 LCD16X2_Write_String(MyLCD,txt);
 
@@ -1369,6 +1390,8 @@ void SetTimerOff_3()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf((char*)txt,"[6] H:%02d-M:%02d",hours_lcd_timer3_stop,minutes_lcd_timer3_stop);
 		// lcd_puts(0,0,txt);
 			 LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1402,6 +1425,9 @@ void SetTimerOff_3()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+
+	    HAL_IWDG_Refresh(&hiwdg);
+
 		 sprintf((char*)txt,"[6] H:%02d-M:%02d",hours_lcd_timer3_stop,minutes_lcd_timer3_stop);
 		// lcd_puts(0,0,txt);
 			LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1443,6 +1469,8 @@ void SetLowBatteryVoltage()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+	    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf(txt,"[7] T1  %4.1f V",Mini_Battery_Voltage);
 			// lcd_puts(0,0,txt);
 				LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1475,6 +1503,8 @@ void SetLowBatteryVoltage()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		    HAL_IWDG_Refresh(&hiwdg);
 			sprintf(txt,"[7] T2  %4.1f V",Mini_Battery_Voltage_T2);
 			// lcd_puts(0,0,txt);
 
@@ -1509,6 +1539,8 @@ void SetLowBatteryVoltage()
 				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 				{
+
+				    HAL_IWDG_Refresh(&hiwdg);
 				   	sprintf(txt,"[7] T3  %4.1f V",Mini_Battery_Voltage_T3);
 					// lcd_puts(0,0,txt);
 					//LCD16X2_Clear(MyLCD);
@@ -1550,6 +1582,8 @@ void SetStartUpLoadsVoltage()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 			{
+
+		         HAL_IWDG_Refresh(&hiwdg);
 			     sprintf(txt,"[8] T1  %4.1f V",StartLoadsVoltage);
 				// lcd_puts(0,0,txt);
 					LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1583,6 +1617,8 @@ void SetStartUpLoadsVoltage()
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 			{
+			    HAL_IWDG_Refresh(&hiwdg);
+
 				sprintf(txt,"[8] T2  %4.1f V",StartLoadsVoltage_T2);
 				// lcd_puts(0,0,txt);
 
@@ -1616,6 +1652,8 @@ void SetStartUpLoadsVoltage()
 						while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 								&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
+
+						    HAL_IWDG_Refresh(&hiwdg);
 							sprintf(txt,"[8] T3  %4.1f V",StartLoadsVoltage_T3);
 							// lcd_puts(0,0,txt);
 							LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1657,6 +1695,8 @@ void Startup_Timers()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		     HAL_IWDG_Refresh(&hiwdg);
 			 sprintf(txt,"[9]T1 ON %02d S  ",startupTIme_1);
 		//	 lcd_puts(0,0,txt);
 
@@ -1690,6 +1730,8 @@ void Startup_Timers()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf((char*)txt,"[9]T2 ON %02d S  ",startupTIme_2);
 			// lcd_puts(0,0,txt);
 				LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1722,6 +1764,8 @@ void Startup_Timers()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf((char*)txt,"[9]T3 ON %02d S  ",startupTIme_3);
 			// lcd_puts(0,0,txt);
 
@@ -1761,6 +1805,8 @@ void SetDelayOff_Timers()
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 			{
+
+			    HAL_IWDG_Refresh(&hiwdg);
 				 sprintf(txt,"[10]T1 OFF %02d S  ",delayTimerOff_1);
 			//	 lcd_puts(0,0,txt);
 
@@ -1794,6 +1840,8 @@ void SetDelayOff_Timers()
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 			{
+
+			    HAL_IWDG_Refresh(&hiwdg);
 				 sprintf((char*)txt,"[10]T2 OFF %02d S  ",delayTimerOff_2);
 				// lcd_puts(0,0,txt);
 					LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1826,6 +1874,8 @@ void SetDelayOff_Timers()
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 			{
+
+			    HAL_IWDG_Refresh(&hiwdg);
 				 sprintf((char*)txt,"[10]T3 OFF %02d S  ",delayTimerOff_3);
 				// lcd_puts(0,0,txt);
 
@@ -1868,6 +1918,8 @@ void SetVoltageMode()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf(txt,"[11] Timer Mode");
 				LCD16X2_Set_Cursor(MyLCD,1,1);
 				LCD16X2_Write_String(MyLCD,txt);
@@ -1916,6 +1968,7 @@ void SetUPSMode()
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
+	    HAL_IWDG_Refresh(&hiwdg);
 		 sprintf(txt,"[12] UPS Mode");
 		// lcd_puts(0,0,txt);
 			LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -1964,6 +2017,8 @@ void SelectRTC()
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
+
+		    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf(txt,"[13]INTERNAL RTC");
 			// lcd_puts(0,0,txt);
 				LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2031,6 +2086,8 @@ set_ds1307_year=gDate.Year;
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 					{
+
+			             HAL_IWDG_Refresh(&hiwdg);
 						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 						// lcd_puts(0,0,txt);
 							LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2060,6 +2117,8 @@ set_ds1307_year=gDate.Year;
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 					{
+
+			             HAL_IWDG_Refresh(&hiwdg);
 						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 						// lcd_puts(0,0,txt);
 							LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2223,6 +2282,8 @@ void SetDS1307()
 				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
+
+				             HAL_IWDG_Refresh(&hiwdg);
 							 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 							// lcd_puts(0,0,txt);
 								LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2252,6 +2313,8 @@ void SetDS1307()
 				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
+
+				    HAL_IWDG_Refresh(&hiwdg);
 							 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 							// lcd_puts(0,0,txt);
 								LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2292,6 +2355,8 @@ void SetDS1307()
 							while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 									&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 									{
+
+							          HAL_IWDG_Refresh(&hiwdg);
 										 sprintf((char*)txt,"[14] %02d/%02d/%02d ",set_ds1307_day,set_ds1307_month,set_ds1307_year);
 
 											LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2322,6 +2387,8 @@ void SetDS1307()
 							while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 									&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 								{
+
+							    HAL_IWDG_Refresh(&hiwdg);
 								 sprintf((char*)txt,"[14] %02d/%02d/%02d ",set_ds1307_day,set_ds1307_month,set_ds1307_year);
 						  //  lcd_puts(0,0,txt);
 									LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2353,8 +2420,10 @@ void SetDS1307()
 							while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 									&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 								{
+
+							    HAL_IWDG_Refresh(&hiwdg);
 								 sprintf((char*)txt,"[14] %02d/%02d/%02d ",set_ds1307_day,set_ds1307_month,set_ds1307_year);
-						 //   lcd_puts(0,0,txt);
+
 									LCD16X2_Set_Cursor(MyLCD,1,1);
 									 LCD16X2_Write_String(MyLCD,txt);
 
@@ -3206,6 +3275,7 @@ int main(void)
   MX_TIM1_Init();
   MX_I2C1_Init();
   MX_RTC_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
    Config();
    Flash_Load();
@@ -3230,7 +3300,7 @@ int main(void)
 	  CheckSystemBatteryMode();          // done for timer 3
 	//  CheckDS1307WorkingState();
 	  HAL_Delay(200);
-
+	  HAL_IWDG_Refresh(&hiwdg);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -3252,13 +3322,12 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -3374,6 +3443,34 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_128;
+  hiwdg.Init.Reload = 2499;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
 
 }
 
