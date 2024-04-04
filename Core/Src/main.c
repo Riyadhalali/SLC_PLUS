@@ -179,7 +179,7 @@ bool insideSetup=0;
 bool timerCounterStart_3=0,timerCounterStart_4=0,timerCounterStart_5=0; // these variables for starting the delay off timer
 uint32_t startTime=0,endTime=0;elapsedTime=0; // for counting time from systemTick
 int secondsCheckNow;
-char usedInsideRTC=0;
+char usedInsideRTC=1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -223,12 +223,16 @@ void SetDelayOff_Timers();
 void ADC_Select_VDD(); // for selecting the reading of VREF
 void ADC_Select_BATTERY(); // for selecting reading battery voltage
 void CheckDS1307WorkingState();
+void SelectRTC();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void set_time (void)
 {
+
+	if (usedInsideRTC==1)
+	{
 	  RTC_TimeTypeDef sTime = {0};
 	  RTC_DateTypeDef DateToUpdate = {0};
 
@@ -250,7 +254,7 @@ void set_time (void)
 	    Error_Handler();
 	  }
   HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR1, 0x32F2);  // backup register
-
+	} // end if useInsiderRTC
   /* USER CODE END RTC_Init 4 */
 }
 
@@ -258,7 +262,7 @@ void set_time (void)
 void get_time(void)
 {
 
-
+   if(usedInsideRTC==1){
   /* Get the RTC current Time */
   HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
   /* Get the RTC current Date */
@@ -266,22 +270,21 @@ void get_time(void)
 
   /* Display time Format: hh:mm:ss */
   sprintf((char*)time,"%02d:%02d:%02d ",gTime.Hours, gTime.Minutes, gTime.Seconds);
-
-  /* Display date Format: mm-dd-yy */
- // sprintf((char*)date,"%02d-%02d-%2d",gDate.Date, gDate.Month, 2000 + gDate.Year);  // I like the date first
+   } // end if
 }
 
 //Let's display the time and date on lcd
 
 void display_time (void)
 {
+	if(usedInsideRTC==1)
+	{
 	get_time();
 	LCD16X2_Set_Cursor(MyLCD,1,1);
 	LCD16X2_Write_String(MyLCD, "Time:");
 	LCD16X2_Write_String(MyLCD,time);
-	//lcd_puts(0,0,"Time:");
-//	lcd_puts(0,5,time);
-	//lcd_puts(1,0,date);
+	}
+
 }
 
 
@@ -306,19 +309,6 @@ void set_alarm (void)
 	   /* USER CODE END RTC_Init 2 */
 
 	 }
-void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
-{
-	alarm = 1;
-}
-
-void to_do_on_alarm (void)
-{
-	HAL_GPIO_WritePin (GPIOA, GPIO_PIN_5, 1);  // set led ON
-	//lcd_clear();
-	//lcd_puts(0,0,"Alarm Time");
-	HAL_Delay (100);
-	//lcd_clear();
-}
 
 //-----------------------------------DS1307 TIME--------------------------------------
 void SetDS1307_Time (uint8_t sec, uint8_t min, uint8_t hour, uint8_t dow, uint8_t dom, uint8_t month, uint8_t year)
@@ -565,33 +555,43 @@ else
  //-------------------------------Read Minutes-----------------------------------
  unsigned short ReadMinutes()
  {
-	 /*
+
+	 if (usedInsideRTC==1)
+	 {
  	RTC_TimeTypeDef gTime;
  	HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
  	Full_Seconds=gTime.Minutes;
  	return Full_Seconds;
- 	*/
-
+	 }
+	 else
+	 {
 	 ReadDS1307_Time();
 	 return time_ds1307.minutes;
+	 }
  }
  //--------------------------------Read hours----------------------------------------
  unsigned short ReadHours()
  {
-	 /*
+	 if(usedInsideRTC)
+	 {
  	RTC_TimeTypeDef gTime;
  	HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
  	Full_Seconds=gTime.Hours;
  	return Full_Seconds;
- 	*/
+	 }
+	 else
+	 {
 	 ReadDS1307_Time();
 	 return time_ds1307.hour;
+	 }
  }
 
  //-----------------------------Check Time Occured-------------------------------
  char CheckTimeOccuredOn(char seconds_required, char minutes_required,char hours_required)
  {
-	 /*
+
+	 if (usedInsideRTC==1) {
+
 	  RTC_DateTypeDef gDate;
 	  RTC_TimeTypeDef gTime;
 	  // Get the RTC current Time
@@ -607,9 +607,10 @@ else
 		return 0;
 	}
 
-	*/
 
 
+	 } // end if
+	 else {
 		if (time_ds1307.hour==hours_required && time_ds1307.minutes==minutes_required)
 		{
 		return 1;
@@ -617,12 +618,13 @@ else
 		else {
 			return 0;
 		}
+	 } // end else
  }
  //-> to check time off
  char CheckTimeOccuredOff(char seconds_required, char minutes_required,char hours_required)
  {
+ if (usedInsideRTC==1) {
 
-	 /*
 	  RTC_DateTypeDef gDate;
 	  RTC_TimeTypeDef gTime;
 	  // Get the RTC current Time
@@ -637,8 +639,9 @@ else
 	else {
 		return 0;
 	}
-	*/
 
+ }
+ else {
     // for ds1307
 		if (gTime.Hours==time_ds1307.hour && time_ds1307.minutes==minutes_required)
 		{
@@ -647,7 +650,7 @@ else
 		else {
 			return 0;
 		}
-
+ } // end else
  }
  //-------------------------------CHECK TIMER IN RANGE--------------------------------------------
  //-------------------Check for timer activation inside range--------------------
@@ -831,12 +834,13 @@ void Flash_Save()
 	flash_data[23]=delayTimerOff_1;
 	flash_data[24]=delayTimerOff_2;
 	flash_data[25]=delayTimerOff_3;
-	Flash_Write_Data(Flash_Address, flash_data, 26);
+	flash_data[26]=usedInsideRTC;
+	Flash_Write_Data(Flash_Address, flash_data, 27);
 }
 //-> to read flash contents to variable
 void Flash_Load()
 {
-Flash_Read_Data(0x0801FC00, flash_data, 26);
+Flash_Read_Data(0x0801FC00, flash_data, 27);
 hours_lcd_1=flash_data[0];
 minutes_lcd_1=flash_data[1];
 hours_lcd_2=flash_data[2];
@@ -863,6 +867,7 @@ UPSMode=flash_data[22];
 delayTimerOff_1=flash_data[23];
 delayTimerOff_2=flash_data[24];
 delayTimerOff_3=flash_data[25];
+usedInsideRTC=flash_data[26];
 
 }
 
@@ -972,8 +977,9 @@ SetVoltageMode();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
 SetUPSMode();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
-//SetRTC_Time(); // for internal rtc
-SetDS1307();
+SelectRTC();
+if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
+if(usedInsideRTC==0)SetDS1307(); else SetRTC_Time();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
 LCD16X2_Clear(MyLCD);
 HAL_Delay(500);
@@ -984,7 +990,7 @@ insideSetup=0;
 //----------------------------Set Timer 1 ----------------------------------
 void SetTimerOn_1()
 {
-//lcd_clear();
+
 HAL_Delay(500);
 //LCD16X2_Clear(MyLCD);
 while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
@@ -1950,6 +1956,56 @@ void SetUPSMode()
 	HAL_Delay(500);
 
 }
+
+//---------------------------------SELECT DS1307 OR INTERNAL RTC--------------------
+void SelectRTC()
+{
+	HAL_Delay(500);
+		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
+				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
+		{
+			 sprintf(txt,"[13]INTERNAL RTC");
+			// lcd_puts(0,0,txt);
+				LCD16X2_Set_Cursor(MyLCD,1,1);
+				LCD16X2_Write_String(MyLCD,txt);
+			 if (usedInsideRTC==0)
+			 {
+				// lcd_puts(1,8,"OFF");
+				 LCD16X2_Set_Cursor(MyLCD,2,8);
+				 LCD16X2_Write_String(MyLCD,"OFF");
+			 }
+			 if (usedInsideRTC==1)
+			 {
+				 LCD16X2_Set_Cursor(MyLCD,2,8);
+				 LCD16X2_Write_String(MyLCD,"ON ");
+				// lcd_puts(1,8,"ON ");
+			 }
+
+			 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
+
+		while(HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET
+				|| HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin)==GPIO_PIN_SET )
+		{
+			if (HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET  )
+			{
+			HAL_Delay(100);
+			usedInsideRTC=1;
+			}
+			if (HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin	)==GPIO_PIN_SET)
+			{
+			HAL_Delay(100);
+			usedInsideRTC=0;
+			}
+			}    //end while incremet and decremet
+
+		}   // end while Enter
+		Flash_Save();
+		LCD16X2_Clear(MyLCD);
+		HAL_Delay(500);
+
+
+
+}
 //--------------------------------Set RTC Time---------------------------------------
 void SetRTC_Time()
 {
@@ -1971,10 +2027,11 @@ set_ds1307_year=gDate.Year;
          //   LCD16X2_Clear(MyLCD);
 			HAL_Delay(500);
 
+
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 					{
-						 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 						// lcd_puts(0,0,txt);
 							LCD16X2_Set_Cursor(MyLCD,1,1);
 							LCD16X2_Write_String(MyLCD,txt);
@@ -2003,7 +2060,7 @@ set_ds1307_year=gDate.Year;
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 					{
-						 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 						// lcd_puts(0,0,txt);
 							LCD16X2_Set_Cursor(MyLCD,1,1);
 							 LCD16X2_Write_String(MyLCD,txt);
@@ -2166,7 +2223,7 @@ void SetDS1307()
 				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
-							 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+							 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 							// lcd_puts(0,0,txt);
 								LCD16X2_Set_Cursor(MyLCD,1,1);
 								LCD16X2_Write_String(MyLCD,txt);
@@ -2195,7 +2252,7 @@ void SetDS1307()
 				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
-							 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+							 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 							// lcd_puts(0,0,txt);
 								LCD16X2_Set_Cursor(MyLCD,1,1);
 								 LCD16X2_Write_String(MyLCD,txt);
@@ -2670,8 +2727,8 @@ void Screen_1()
 	}
 	if (RunOnBatteryVoltageMode==0)
 	{
-	//display_time();  // reading from internal rtc
-	DisplayTimeDS1307();
+		if (usedInsideRTC==1) display_time();        //reading from internal rtc
+	 	if (usedInsideRTC==0) DisplayTimeDS1307();   //reading from ds1307
 	}
 	else
 	{
@@ -3033,6 +3090,7 @@ void Factory_Settings()
 	delayTimerOff_1=25;
 	delayTimerOff_2=20;
 	delayTimerOff_3=15;
+	usedInsideRTC=0; // use ds1307 as defaut
 	//-> write data to array
 	flash_data[0]=hours_lcd_1;
 	flash_data[1]=minutes_lcd_1;
@@ -3060,8 +3118,9 @@ void Factory_Settings()
 	flash_data[23]=delayTimerOff_1;
 	flash_data[24]=delayTimerOff_2;
 	flash_data[25]=delayTimerOff_3;
+	flash_data[26]=usedInsideRTC;
     //-> save data to flash
-	Flash_Write_Data(Flash_Address, flash_data, 26);
+	Flash_Write_Data(Flash_Address, flash_data, 27);
 }
 
 //------------------------------------SELECT ADC CHANNEL-------------------------------
