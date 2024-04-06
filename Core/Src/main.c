@@ -179,8 +179,8 @@ float  flash_data[50];
 uint32_t startTime;
 bool insideSetup=0;
 bool timerCounterStart_3=0,timerCounterStart_4=0,timerCounterStart_5=0; // these variables for starting the delay off timer
-uint32_t startTime=0,endTime=0;elapsedTime=0; // for counting time from systemTick
-int secondsCheckNow;
+uint32_t currentMillis_1=0,previousMiliis_1=0;
+uint32_t currentMillis_2=0,previousMiliis_2=0;
 char usedInsideRTC=1;
 /* USER CODE END PV */
 
@@ -995,20 +995,33 @@ void SetTimerOn_1()
 {
 
 HAL_Delay(500);
+currentMillis_1=0,currentMillis_2=0;
+previousMiliis_1=0,previousMiliis_2=0;
 //LCD16X2_Clear(MyLCD);
 while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
-		&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET
-	 )
+		&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
+
 {
 
     HAL_IWDG_Refresh(&hiwdg);
 
+
+	 currentMillis_2=HAL_GetTick();
+	 if(currentMillis_2-previousMiliis_2 >=1000)
+	 {
+	 previousMiliis_2=currentMillis_2;
 	 sprintf((char*)txt,"[1] H:%02d-M:%02d",hours_lcd_1,minutes_lcd_1);
-	// lcd_puts(0,0,txt);
 	 LCD16X2_Set_Cursor(MyLCD,1,1);
 	 LCD16X2_Write_String(MyLCD,txt);
+	 }
 
-
+	 currentMillis_1=HAL_GetTick();
+	 if(currentMillis_1-previousMiliis_1 >=2000)
+	 {
+	 previousMiliis_1=currentMillis_1;
+	 LCD16X2_Set_Cursor(MyLCD,1,10);
+	 LCD16X2_Write_String(MyLCD,"    ");
+	 }
 	 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
 while(HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET
@@ -1032,16 +1045,34 @@ while(HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET
 	}    //end while incremet and decremet
 
 }   // end while Enter
+currentMillis_1=0,currentMillis_2=0;
+previousMiliis_1=0,previousMiliis_2=0;
 HAL_Delay(500);
 while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 	&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 {
 
-    HAL_IWDG_Refresh(&hiwdg);
+
+     HAL_IWDG_Refresh(&hiwdg);
+	 currentMillis_2=HAL_GetTick();
+	 if(currentMillis_2-previousMiliis_2 >=1000)
+	 {
+	 previousMiliis_2=currentMillis_2;
 	 sprintf((char*)txt,"[1] H:%02d-M:%02d",hours_lcd_1,minutes_lcd_1);
-	// lcd_puts(0,0,txt);
 	 LCD16X2_Set_Cursor(MyLCD,1,1);
 	 LCD16X2_Write_String(MyLCD,txt);
+	 }
+
+
+	 currentMillis_1=HAL_GetTick();
+	 if(currentMillis_1-previousMiliis_1 >=2000)
+	 {
+	 previousMiliis_1=currentMillis_1;
+	 //-> to convert to seconds previousMiliis/1000
+	 LCD16X2_Set_Cursor(MyLCD,1,5);
+	 LCD16X2_Write_String(MyLCD,"    ");
+	 }
+
 
 	 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1075,18 +1106,33 @@ LCD16X2_Clear(MyLCD);
 void SetTimerOff_1()
 {
 
-	//lcd_clear();
-	//LCD16X2_Clear(MyLCD);
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 		&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 
 	    HAL_IWDG_Refresh(&hiwdg);
+
+		 currentMillis_2=HAL_GetTick();
+		 if(currentMillis_2-previousMiliis_2 >=1000)
+		 {
+		 previousMiliis_2=currentMillis_2;
 		 sprintf((char*)txt,"[2] H:%02d-M:%02d",hours_lcd_2,minutes_lcd_2);
-		 //lcd_puts(0,0,txt);
 		 LCD16X2_Set_Cursor(MyLCD,1,1);
 		 LCD16X2_Write_String(MyLCD,txt);
+		 }
+
+
+		 currentMillis_1=HAL_GetTick();
+		 if(currentMillis_1-previousMiliis_1 >=2000)
+		 {
+		 previousMiliis_1=currentMillis_1;
+		 LCD16X2_Set_Cursor(MyLCD,1,10);
+		 LCD16X2_Write_String(MyLCD,"    ");
+		 }
+
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1110,16 +1156,33 @@ void SetTimerOff_1()
 		}    //end while incremet and decremet
 
 	}   // end while Enter
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 
 	    HAL_IWDG_Refresh(&hiwdg);
+
+
+         currentMillis_2=HAL_GetTick();
+		 if(currentMillis_2-previousMiliis_2 >=1000)
+		 {
+		 previousMiliis_2=currentMillis_2;
 		 sprintf((char*)txt,"[2] H:%02d-M:%02d",hours_lcd_2,minutes_lcd_2);
-		// lcd_puts(0,0,txt);
 		 LCD16X2_Set_Cursor(MyLCD,1,1);
 		 LCD16X2_Write_String(MyLCD,txt);
+		 }
+
+
+		 currentMillis_1=HAL_GetTick();
+		 if(currentMillis_1-previousMiliis_1 >=2000)
+		 {
+		 previousMiliis_1=currentMillis_1;
+		 LCD16X2_Set_Cursor(MyLCD,1,5);
+		 LCD16X2_Write_String(MyLCD,"    ");
+		 }
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;  // to break the loop
 
@@ -1153,16 +1216,32 @@ void SetTimerOn_2()
 {
 	//lcd_clear();
 	//LCD16X2_Clear(MyLCD);
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 
 	    HAL_IWDG_Refresh(&hiwdg);
-		 sprintf((char*)txt,"[3] H:%02d-M:%02d",hours_lcd_timer2_start,minutes_lcd_timer2_start);
-		// lcd_puts(0,0,txt);
-			LCD16X2_Set_Cursor(MyLCD,1,1);
+
+	          currentMillis_2=HAL_GetTick();
+			 if(currentMillis_2-previousMiliis_2 >=1000)
+			 {
+			 previousMiliis_2=currentMillis_2;
+			 sprintf((char*)txt,"[3] H:%02d-M:%02d",hours_lcd_timer2_start,minutes_lcd_timer2_start);
+			 LCD16X2_Set_Cursor(MyLCD,1,1);
 			 LCD16X2_Write_String(MyLCD,txt);
+			 }
+
+
+			 currentMillis_1=HAL_GetTick();
+			 if(currentMillis_1-previousMiliis_1 >=2000)
+			 {
+			 previousMiliis_1=currentMillis_1;
+			 LCD16X2_Set_Cursor(MyLCD,1,10);
+			 LCD16X2_Write_String(MyLCD,"    ");
+			 }
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1187,16 +1266,32 @@ void SetTimerOn_2()
 		}    //end while incremet and decremet
 
 	}   // end while Enter
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 
-	    HAL_IWDG_Refresh(&hiwdg);
+	     HAL_IWDG_Refresh(&hiwdg);
+
+	     currentMillis_2=HAL_GetTick();
+		 if(currentMillis_2-previousMiliis_2 >=1000)
+		 {
+		 previousMiliis_2=currentMillis_2;
 		 sprintf((char*)txt,"[3] H:%02d-M:%02d",hours_lcd_timer2_start,minutes_lcd_timer2_start);
-		// lcd_puts(0,0,txt);
-			LCD16X2_Set_Cursor(MyLCD,1,1);
-			 LCD16X2_Write_String(MyLCD,txt);
+		 LCD16X2_Set_Cursor(MyLCD,1,1);
+		 LCD16X2_Write_String(MyLCD,txt);
+		 }
+
+
+		 currentMillis_1=HAL_GetTick();
+		 if(currentMillis_1-previousMiliis_1 >=2000)
+		 {
+		 previousMiliis_1=currentMillis_1;
+		 LCD16X2_Set_Cursor(MyLCD,1,5);
+		 LCD16X2_Write_String(MyLCD,"    ");
+		 }
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1230,16 +1325,33 @@ void SetTimerOff_2()
 {
 	//lcd_clear();
 //	LCD16X2_Clear(MyLCD);
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 
-	    HAL_IWDG_Refresh(&hiwdg);
-		 sprintf((char*)txt,"[4] H:%02d-M:%02d",hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
-		// lcd_puts(0,0,txt);
-			LCD16X2_Set_Cursor(MyLCD,1,1);
+	     HAL_IWDG_Refresh(&hiwdg);
+
+
+	         currentMillis_2=HAL_GetTick();
+			 if(currentMillis_2-previousMiliis_2 >=1000)
+			 {
+			 previousMiliis_2=currentMillis_2;
+			 sprintf((char*)txt,"[4] H:%02d-M:%02d",hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
+			 LCD16X2_Set_Cursor(MyLCD,1,1);
 			 LCD16X2_Write_String(MyLCD,txt);
+			 }
+
+
+			 currentMillis_1=HAL_GetTick();
+			 if(currentMillis_1-previousMiliis_1 >=2000)
+			 {
+			 previousMiliis_1=currentMillis_1;
+			 LCD16X2_Set_Cursor(MyLCD,1,10);
+			 LCD16X2_Write_String(MyLCD,"    ");
+			 }
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1264,18 +1376,33 @@ void SetTimerOff_2()
 		}    //end while incremet and decremet
 
 	}   // end while Enter
-
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 
 	    HAL_IWDG_Refresh(&hiwdg);
-		 sprintf((char*)txt,"[4] H:%02d-M:%02d",hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
-		// lcd_puts(0,0,txt);
 
-			LCD16X2_Set_Cursor(MyLCD,1,1);
-		    LCD16X2_Write_String(MyLCD,txt);
+	     currentMillis_2=HAL_GetTick();
+		 if(currentMillis_2-previousMiliis_2 >=1000)
+		 {
+		 previousMiliis_2=currentMillis_2;
+		 sprintf((char*)txt,"[4] H:%02d-M:%02d",hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
+		 LCD16X2_Set_Cursor(MyLCD,1,1);
+		 LCD16X2_Write_String(MyLCD,txt);
+		 }
+
+
+		 currentMillis_1=HAL_GetTick();
+		 if(currentMillis_1-previousMiliis_1 >=2000)
+		 {
+		 previousMiliis_1=currentMillis_1;
+		 LCD16X2_Set_Cursor(MyLCD,1,5);
+		 LCD16X2_Write_String(MyLCD,"    ");
+		 }
+
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1309,17 +1436,33 @@ void SetTimerOn_3()
 {
 	    //lcd_clear();
 	   // LCD16X2_Clear(MyLCD);
+
+     	currentMillis_1=0,currentMillis_2=0;
+	    previousMiliis_1=0,previousMiliis_2=0;
 		HAL_Delay(500);
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
 
 		    HAL_IWDG_Refresh(&hiwdg);
-			 sprintf((char*)txt,"[5] H:%02d-M:%02d",hours_lcd_timer3_start,minutes_lcd_timer3_start);
 
-
-				LCD16X2_Set_Cursor(MyLCD,1,1);
+			     currentMillis_2=HAL_GetTick();
+				 if(currentMillis_2-previousMiliis_2 >=1000)
+				 {
+				 previousMiliis_2=currentMillis_2;
+				 sprintf((char*)txt,"[5] H:%02d-M:%02d",hours_lcd_timer3_start,minutes_lcd_timer3_start);
+				 LCD16X2_Set_Cursor(MyLCD,1,1);
 				 LCD16X2_Write_String(MyLCD,txt);
+				 }
+
+
+				 currentMillis_1=HAL_GetTick();
+				 if(currentMillis_1-previousMiliis_1 >=2000)
+				 {
+				 previousMiliis_1=currentMillis_1;
+				 LCD16X2_Set_Cursor(MyLCD,1,10);
+				 LCD16X2_Write_String(MyLCD,"    ");
+				 }
 
 			 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1344,15 +1487,32 @@ void SetTimerOn_3()
 			}    //end while incremet and decremet
 
 		}   // end while Enter
+		currentMillis_1=0,currentMillis_2=0;
+		previousMiliis_1=0,previousMiliis_2=0;
 		HAL_Delay(500);
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
 
 		    HAL_IWDG_Refresh(&hiwdg);
+
+		     currentMillis_2=HAL_GetTick();
+			 if(currentMillis_2-previousMiliis_2 >=1000)
+			 {
+			 previousMiliis_2=currentMillis_2;
 			 sprintf((char*)txt,"[5] H:%02d-M:%02d",hours_lcd_timer3_start,minutes_lcd_timer3_start);
-				LCD16X2_Set_Cursor(MyLCD,1,1);
-				 LCD16X2_Write_String(MyLCD,txt);
+			 LCD16X2_Set_Cursor(MyLCD,1,1);
+			 LCD16X2_Write_String(MyLCD,txt);
+			 }
+
+
+			 currentMillis_1=HAL_GetTick();
+			 if(currentMillis_1-previousMiliis_1 >=2000)
+			 {
+			 previousMiliis_1=currentMillis_1;
+			 LCD16X2_Set_Cursor(MyLCD,1,5);
+			 LCD16X2_Write_String(MyLCD,"    ");
+			 }
 
 			 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1386,16 +1546,32 @@ void SetTimerOff_3()
 {
 //	lcd_clear();
 	//LCD16X2_Clear(MyLCD);
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 
-	    HAL_IWDG_Refresh(&hiwdg);
-		 sprintf((char*)txt,"[6] H:%02d-M:%02d",hours_lcd_timer3_stop,minutes_lcd_timer3_stop);
-		// lcd_puts(0,0,txt);
+	         HAL_IWDG_Refresh(&hiwdg);
+
+		     currentMillis_2=HAL_GetTick();
+			 if(currentMillis_2-previousMiliis_2 >=1000)
+			 {
+			 previousMiliis_2=currentMillis_2;
+			 sprintf((char*)txt,"[6] H:%02d-M:%02d",hours_lcd_timer3_stop,minutes_lcd_timer3_stop);
 			 LCD16X2_Set_Cursor(MyLCD,1,1);
 			 LCD16X2_Write_String(MyLCD,txt);
+			 }
+
+
+			 currentMillis_1=HAL_GetTick();
+			 if(currentMillis_1-previousMiliis_1 >=2000)
+			 {
+			 previousMiliis_1=currentMillis_1;
+			 LCD16X2_Set_Cursor(MyLCD,1,10);
+			 LCD16X2_Write_String(MyLCD,"    ");
+			 }
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -1420,7 +1596,8 @@ void SetTimerOff_3()
 		}    //end while incremet and decremet
 
 	}   // end while Enter
-
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
@@ -1428,10 +1605,23 @@ void SetTimerOff_3()
 
 	    HAL_IWDG_Refresh(&hiwdg);
 
+	     currentMillis_2=HAL_GetTick();
+		 if(currentMillis_2-previousMiliis_2 >=1000)
+		 {
+		 previousMiliis_2=currentMillis_2;
 		 sprintf((char*)txt,"[6] H:%02d-M:%02d",hours_lcd_timer3_stop,minutes_lcd_timer3_stop);
-		// lcd_puts(0,0,txt);
-			LCD16X2_Set_Cursor(MyLCD,1,1);
-			 LCD16X2_Write_String(MyLCD,txt);
+		 LCD16X2_Set_Cursor(MyLCD,1,1);
+		 LCD16X2_Write_String(MyLCD,txt);
+		 }
+
+
+		 currentMillis_1=HAL_GetTick();
+		 if(currentMillis_1-previousMiliis_1 >=2000)
+		 {
+		 previousMiliis_1=currentMillis_1;
+		 LCD16X2_Set_Cursor(MyLCD,1,5);
+		 LCD16X2_Write_String(MyLCD,"    ");
+		 }
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -2019,17 +2209,17 @@ void SelectRTC()
 		{
 
 		    HAL_IWDG_Refresh(&hiwdg);
-			 sprintf(txt,"[13]INTERNAL RTC");
+			 sprintf(txt,"[13]EXTERNAL RTC");
 			// lcd_puts(0,0,txt);
 				LCD16X2_Set_Cursor(MyLCD,1,1);
 				LCD16X2_Write_String(MyLCD,txt);
-			 if (usedInsideRTC==0)
+			 if (usedInsideRTC==1)    // USE INTERNAL RTC EXTERNAL DS1307 IS OFF
 			 {
 				// lcd_puts(1,8,"OFF");
 				 LCD16X2_Set_Cursor(MyLCD,2,8);
 				 LCD16X2_Write_String(MyLCD,"OFF");
 			 }
-			 if (usedInsideRTC==1)
+			 if (usedInsideRTC==0)  //DS1307 RTC IS OFF
 			 {
 				 LCD16X2_Set_Cursor(MyLCD,2,8);
 				 LCD16X2_Write_String(MyLCD,"ON ");
@@ -2080,6 +2270,9 @@ set_ds1307_year=gDate.Year;
 
 	      //  lcd_clear();
          //   LCD16X2_Clear(MyLCD);
+
+currentMillis_1=0,currentMillis_2=0;
+previousMiliis_1=0,previousMiliis_2=0;
 			HAL_Delay(500);
 
 
@@ -2087,11 +2280,25 @@ set_ds1307_year=gDate.Year;
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 					{
 
-			             HAL_IWDG_Refresh(&hiwdg);
-						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
-						// lcd_puts(0,0,txt);
-							LCD16X2_Set_Cursor(MyLCD,1,1);
-							LCD16X2_Write_String(MyLCD,txt);
+			                         HAL_IWDG_Refresh(&hiwdg);
+
+							         currentMillis_2=HAL_GetTick();
+									 if(currentMillis_2-previousMiliis_2 >=1000)
+									 {
+									 previousMiliis_2=currentMillis_2;
+									 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+									 LCD16X2_Set_Cursor(MyLCD,1,1);
+									 LCD16X2_Write_String(MyLCD,txt);
+									 }
+
+									 currentMillis_1=HAL_GetTick();
+									 if(currentMillis_1-previousMiliis_1 >=2000)
+									 {
+									 previousMiliis_1=currentMillis_1;
+									 LCD16X2_Set_Cursor(MyLCD,1,6);
+									 LCD16X2_Write_String(MyLCD,"    ");
+									 }
+
 
 						 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -2113,16 +2320,32 @@ set_ds1307_year=gDate.Year;
 						if (set_ds1307_hours<0) startupTIme_1=0;
 						}    //end while incremet and decremet
 					}   // end while Enter
+			currentMillis_1=0,currentMillis_2=0;
+			previousMiliis_1=0,previousMiliis_2=0;
 			HAL_Delay(500);
 			while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 					&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 					{
 
 			             HAL_IWDG_Refresh(&hiwdg);
+
+
+				         currentMillis_2=HAL_GetTick();
+						 if(currentMillis_2-previousMiliis_2 >=1000)
+						 {
+						 previousMiliis_2=currentMillis_2;
 						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
-						// lcd_puts(0,0,txt);
-							LCD16X2_Set_Cursor(MyLCD,1,1);
-							 LCD16X2_Write_String(MyLCD,txt);
+						 LCD16X2_Set_Cursor(MyLCD,1,1);
+						 LCD16X2_Write_String(MyLCD,txt);
+						 }
+
+						 currentMillis_1=HAL_GetTick();
+						 if(currentMillis_1-previousMiliis_1 >=2000)
+						 {
+						 previousMiliis_1=currentMillis_1;
+						 LCD16X2_Set_Cursor(MyLCD,1,11);
+						 LCD16X2_Write_String(MyLCD,"    ");
+						 }
 
 						 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -2275,19 +2498,36 @@ void SetDS1307()
 	set_ds1307_day=time_ds1307.dayofmonth;
 	set_ds1307_month=time_ds1307.month;
 	set_ds1307_year=time_ds1307.year;
-		      //  lcd_clear();
-	         //   LCD16X2_Clear(MyLCD);
+
+
+	currentMillis_1=0,currentMillis_2=0;
+	previousMiliis_1=0,previousMiliis_2=0;
+
+
 				HAL_Delay(500);
 
 				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
 
-				             HAL_IWDG_Refresh(&hiwdg);
-							 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
-							// lcd_puts(0,0,txt);
-								LCD16X2_Set_Cursor(MyLCD,1,1);
-								LCD16X2_Write_String(MyLCD,txt);
+				                HAL_IWDG_Refresh(&hiwdg);
+
+								 currentMillis_2=HAL_GetTick();
+								 if(currentMillis_2-previousMiliis_2 >=1000)
+								 {
+								 previousMiliis_2=currentMillis_2;
+								 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+								 LCD16X2_Set_Cursor(MyLCD,1,1);
+								 LCD16X2_Write_String(MyLCD,txt);
+								 }
+
+								 currentMillis_1=HAL_GetTick();
+								 if(currentMillis_1-previousMiliis_1 >=2000)
+								 {
+								 previousMiliis_1=currentMillis_1;
+								 LCD16X2_Set_Cursor(MyLCD,1,6);
+								 LCD16X2_Write_String(MyLCD,"    ");
+								 }
 
 							 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -2309,16 +2549,32 @@ void SetDS1307()
 							if (set_ds1307_hours<0) startupTIme_1=0;
 							}    //end while incremet and decremet
 						}   // end while Enter
+
+				currentMillis_1=0,currentMillis_2=0;
+				previousMiliis_1=0,previousMiliis_2=0;
 				HAL_Delay(500);
 				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
 
-				    HAL_IWDG_Refresh(&hiwdg);
-							 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
-							// lcd_puts(0,0,txt);
-								LCD16X2_Set_Cursor(MyLCD,1,1);
+				                 HAL_IWDG_Refresh(&hiwdg);
+
+								 currentMillis_2=HAL_GetTick();
+								 if(currentMillis_2-previousMiliis_2 >=1000)
+								 {
+								 previousMiliis_2=currentMillis_2;
+								 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+								 LCD16X2_Set_Cursor(MyLCD,1,1);
 								 LCD16X2_Write_String(MyLCD,txt);
+								 }
+
+								 currentMillis_1=HAL_GetTick();
+								 if(currentMillis_1-previousMiliis_1 >=2000)
+								 {
+								 previousMiliis_1=currentMillis_1;
+								 LCD16X2_Set_Cursor(MyLCD,1,11);
+								 LCD16X2_Write_String(MyLCD,"    ");
+								 }
 
 							 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
 
@@ -3227,14 +3483,7 @@ void CheckDS1307WorkingState()
 if (RunOnBatteryVoltageMode==0) // if timer is on as mode
 {
 ReadDS1307_Time();
-if(UpdateScreenTime==5 )
-{
-secondsCheckNow=time_ds1307.seconds;
-}
-if (UpdateScreenTime==15)
-{
-//if (secondsCheckNow<=time_ds1307.seconds) RunOnBatteryVoltageMode=1;
-}
+if (time_ds1307.seconds>60) RunOnBatteryVoltageMode=1;
 } // end if RunOnBatteryVoltageMode
 }
 //-------------------------------------MAIN LOOP-----------------------------------------
@@ -3291,14 +3540,13 @@ int main(void)
       CheckForSet();  // done for timer 3
 	  RunTimersNowCheck(); // done for timer 3
 	  WorkingMode();
-	//  AutoRunWithOutBatteryProtection(); // to auto select run with battery protection or not
 	  CheckForTimerActivationInRange(); // done for timer 3
 	  CheckForTimerActivationOutRange();  //done for timer 3
 	  Screen_1();
 	  Check_Timers();    // done for timer 3
 	  TurnLoadsOffWhenGridOff();   // done for timer 3
 	  CheckSystemBatteryMode();          // done for timer 3
-	//  CheckDS1307WorkingState();
+	 // CheckDS1307WorkingState();
 	  HAL_Delay(200);
 	  HAL_IWDG_Refresh(&hiwdg);
     /* USER CODE END WHILE */
