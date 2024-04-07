@@ -424,9 +424,9 @@ HAL_Delay(10);
 sum+=Battery[i];
 }
 //error handling
-if (HAL_GPIO_ReadPin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin)==1) addError_1=0.066; else if (HAL_GPIO_ReadPin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin)==0) addError_1=0;
-if (HAL_GPIO_ReadPin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin)==1) addError_2=0.066; else if (HAL_GPIO_ReadPin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin)==0) addError_2=0;
-if (HAL_GPIO_ReadPin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin)==1) addError_3=0.066; else if (HAL_GPIO_ReadPin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin)==0) addError_3=0;
+if (HAL_GPIO_ReadPin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin)==1) addError_1=0.07; else if (HAL_GPIO_ReadPin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin)==0) addError_1=0;
+if (HAL_GPIO_ReadPin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin)==1) addError_2=0.07; else if (HAL_GPIO_ReadPin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin)==0) addError_2=0;
+if (HAL_GPIO_ReadPin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin)==1) addError_3=0.07; else if (HAL_GPIO_ReadPin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin)==0) addError_3=0;
 
 Vin_Battery= (sum/100.0) + addError_1+ addError_2 +addError_3;
 sprintf(buffer,"V=%4.1f",Vin_Battery);     // re format vin_battery to have 2 decimals
@@ -2316,8 +2316,8 @@ previousMiliis_1=0,previousMiliis_2=0;
 						set_ds1307_hours--;
 						}
 						//-> perfect
-						if (set_ds1307_hours>23)  startupTIme_1=0;
-						if (set_ds1307_hours<0) startupTIme_1=0;
+						if (set_ds1307_hours>23)  set_ds1307_hours=0;
+						if (set_ds1307_hours<0) set_ds1307_hours=0;
 						}    //end while incremet and decremet
 					}   // end while Enter
 			currentMillis_1=0,currentMillis_2=0;
@@ -2545,8 +2545,8 @@ void SetDS1307()
 							set_ds1307_hours--;
 							}
 							//-> perfect
-							if (set_ds1307_hours>23)  startupTIme_1=0;
-							if (set_ds1307_hours<0) startupTIme_1=0;
+							if (set_ds1307_hours>23)  set_ds1307_hours=0;
+							if (set_ds1307_hours<0) set_ds1307_hours=0;
 							}    //end while incremet and decremet
 						}   // end while Enter
 
@@ -2893,7 +2893,7 @@ if (  SecondsRealTimePv_ReConnect_T3 > startupTIme_3)
 //*************************************BYPASS SYSTEM***********************************************
 if(AC_Available==GPIO_PIN_RESET  && UPSMode==0 )   // voltage protector is not enabled
 {
-
+TurnOffLoadsByPass=0;
 CountSecondsRealTime=1;
 if(SecondsRealTime >= startupTIme_1 && AC_Available==0)
 {
@@ -2914,6 +2914,7 @@ HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
 //-----------------------------------UPO MODE------------------------------------------------------
 if(AC_Available==GPIO_PIN_RESET && UPSMode==1 )
 {
+TurnOffLoadsByPass=1;
 CountSecondsRealTime=1;
 if( AC_Available==0 && LoadsAlreadySwitchedOFF==0)
 {
