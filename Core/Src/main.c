@@ -374,7 +374,7 @@ LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V1.1");
+LCD16X2_Write_String(MyLCD," V1.2");
 //lcd_init();
 //lcd_puts(0,0," SLC PLUS V1.0 " );
 HAL_Delay(2000);
