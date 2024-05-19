@@ -182,7 +182,7 @@ bool insideSetup=0;
 bool timerCounterStart_3=0,timerCounterStart_4=0,timerCounterStart_5=0; // these variables for starting the delay off timer
 uint32_t currentMillis_1=0,previousMiliis_1=0;
 uint32_t currentMillis_2=0,previousMiliis_2=0;
-char usedInsideRTC=1;
+char usedInsideRTC=0;
 char relayState_1=0,relayState_2=0,relayState_3=0; // for saving relay state
 HAL_StatusTypeDef hal_status_ds1307; // for reading ds1307 status
 /* USER CODE END PV */
@@ -275,7 +275,7 @@ void get_time(void)
   HAL_RTC_GetDate(&hrtc, &gDate, RTC_FORMAT_BIN);
 
   /* Display time Format: hh:mm:ss */
-  sprintf((char*)time,"%02d:%02d:%02d ",gTime.Hours, gTime.Minutes, gTime.Seconds);
+  sprintf((char*)time,"%02d:%02d:%02d   ",gTime.Hours, gTime.Minutes, gTime.Seconds);
    } // end if
 }
 
@@ -334,7 +334,7 @@ void ReadDS1307_Time (void)
 void DisplayTimeDS1307()
 {
 	ReadDS1307_Time();
-	sprintf ((char*)time, "%02d:%02d:%02d ", time_ds1307.hour, time_ds1307.minutes, time_ds1307.seconds);
+	sprintf ((char*)time, "%02d:%02d:%02d   ", time_ds1307.hour, time_ds1307.minutes, time_ds1307.seconds);
 	LCD16X2_Set_Cursor(MyLCD,1,1);
 	LCD16X2_Write_String(MyLCD,time);
 
@@ -361,7 +361,7 @@ LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V1.6");
+LCD16X2_Write_String(MyLCD," V1.7");
 HAL_Delay(2000);
 LCD16X2_Clear(MyLCD);
 }
@@ -417,7 +417,7 @@ sprintf(buffer,"V=%4.1f",Vin_Battery);     // re format vin_battery to have 2 de
 LCD16X2_Set_Cursor(MyLCD,2,1);
 LCD16X2_Write_String(MyLCD,buffer);
 }
-//****************************INTERRUPTS----------------------------------------------------
+//****************************INTERRUPTS---------------------------------------
  //--------------------------TIMER INTERRUPT-----------------------------------
  //-> start timer for battery low voltage
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -772,7 +772,6 @@ else
   if (ReadHours() < hours_lcd_timer3_start  && ReadHours() < hours_lcd_timer3_stop )
   {
   Timer_3_isOn=0;
-  relayState_3=0;
   }
 
   if (ReadHours() > hours_lcd_timer3_start  && ReadHours() > hours_lcd_timer3_stop )
@@ -3309,6 +3308,7 @@ if (minutes_lcd_timer3_stop< 0  || minutes_lcd_timer3_stop > 59)
 minutes_lcd_timer3_stop=0;
 
 }
+
 //---------------------------LOW Voltage------------------------------
 if (Mini_Battery_Voltage<= 0  || Mini_Battery_Voltage > 65.0 || isnan(Mini_Battery_Voltage))
 {
@@ -3405,6 +3405,7 @@ if (UPSMode<0 || UPSMode > 1)
 	UPSMode=0;
 
 }
+
 Flash_Save(); // write to flash once
 } // end function checkforparams
 //--------------------------------WORKINING MODE------------------------------------------
@@ -3583,7 +3584,7 @@ void Factory_Settings()
 	delayTimerOff_1=25;
 	delayTimerOff_2=20;
 	delayTimerOff_3=15;
-	usedInsideRTC=1;  // use internal rtc as default
+	usedInsideRTC=0;  // use ds1307 as default clock source
 	//-> write data to array
 	flash_data[0]=hours_lcd_1;
 	flash_data[1]=minutes_lcd_1;
@@ -3698,7 +3699,7 @@ int main(void)
   while (1)
   {
 
-	//  CheckForParams();  // done for timer 3
+	  //CheckForParams();  // done for timer 3
       CheckForSet();  // done for timer 3
 	  RunTimersNowCheck(); // done for timer 3
 	  WorkingMode();
