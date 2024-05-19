@@ -226,9 +226,9 @@ int bcdToDec(uint8_t val);
 void DisplayTimeDS1307();
 void SetDS1307(); // set ds1307 time in setup program
 void SetDelayOff_Timers();
-void ADC_Select_VDD(); // for selecting the reading of VREF
-void ADC_Select_BATTERY(); // for selecting reading battery voltage
-void CheckDS1307WorkingState();
+//void ADC_Select_VDD(); // for selecting the reading of VREF
+//void ADC_Select_BATTERY(); // for selecting reading battery voltage
+//void CheckDS1307WorkingState();
 void SelectRTC();
 /* USER CODE END PFP */
 
@@ -294,28 +294,6 @@ void display_time (void)
 }
 
 
-
-
-void set_alarm (void)
-{
-	  RTC_AlarmTypeDef sAlarm;
-
-	   sAlarm.AlarmTime.Hours = 5;
-	   sAlarm.AlarmTime.Minutes = 0;
-	   sAlarm.AlarmTime.Seconds = 5;
-
-
-	   sAlarm.Alarm = RTC_ALARM_A;
-	   if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK)
-	   {
-	     Error_Handler();
-	   }
-	   /* USER CODE BEGIN RTC_Init 2 */
-
-	   /* USER CODE END RTC_Init 2 */
-
-	 }
-
 //-----------------------------------DS1307 TIME--------------------------------------
 void SetDS1307_Time (uint8_t sec, uint8_t min, uint8_t hour, uint8_t dow, uint8_t dom, uint8_t month, uint8_t year)
 {
@@ -337,9 +315,10 @@ void ReadDS1307_Time (void)
 	hal_status_ds1307=HAL_I2C_Mem_Read(&hi2c1, DS1307_ADDRESS, 0x00, 1, get_time, 7, 1000);
 	if(hal_status_ds1307 != HAL_OK)
 	{
-
-
-	 //	LCD16X2_Set_Cursor(MyLCD,1,9);
+		HAL_I2C_DeInit(&hi2c1);
+	 	HAL_Delay(100);
+		HAL_I2C_Init(&hi2c1);
+	   // LCD16X2_Set_Cursor(MyLCD,1,9);
 	//	LCD16X2_Write_String(MyLCD,"ER") ;
 	}
 	time_ds1307.seconds = bcdToDec(get_time[0]);
@@ -357,7 +336,6 @@ void DisplayTimeDS1307()
 	ReadDS1307_Time();
 	sprintf ((char*)time, "%02d:%02d:%02d ", time_ds1307.hour, time_ds1307.minutes, time_ds1307.seconds);
 	LCD16X2_Set_Cursor(MyLCD,1,1);
-	//LCD16X2_Write_String(MyLCD, "Time:");
 	LCD16X2_Write_String(MyLCD,time);
 
 }
@@ -377,20 +355,18 @@ int bcdToDec(uint8_t val)
 void Config()
 {
 HAL_ADCEx_Calibration_Start(&hadc1);	// start calibration
-//HAL_ADC_Start_DMA(&hadc1, &adc_buffer, 1);
 HAL_GPIO_WritePin(BACKLIGHT_GPIO_Port, BACKLIGHT_Pin, GPIO_PIN_SET); // turning on the backlight
 LCD16X2_Init(MyLCD);
 LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V1.5");
+LCD16X2_Write_String(MyLCD," V1.6");
 HAL_Delay(2000);
 LCD16X2_Clear(MyLCD);
-
-
 }
 //----------------------------------LCD_CLEAR------------------------------------------
+/*
 void LCD_Clear(unsigned short Row, unsigned short Start, unsigned short End)
 {
   unsigned short Column;
@@ -400,6 +376,7 @@ void LCD_Clear(unsigned short Row, unsigned short Start, unsigned short End)
 	  LCD16X2_Write_String(MyLCD,32);
    }
 }
+*/
 //--------------------------------Read Battery Voltage-----------------------------------
 void Read_Battery()
 {
@@ -421,7 +398,7 @@ LCD16X2_Write_String(MyLCD,buffer);
 //-------------------------------------READ BATTERY----------------------------------------
 for ( i=0; i<100 ; i++)
 {
-ADC_Select_BATTERY();
+//ADC_Select_BATTERY();
 HAL_ADC_Start(&hadc1); // START ADC CONVERSION
 HAL_ADC_PollForConversion(&hadc1, 100); //// Poll ADC1 Perihperal & TimeOut = 1mSec
 adc_value=HAL_ADC_GetValue(&hadc1);
@@ -441,15 +418,6 @@ LCD16X2_Set_Cursor(MyLCD,2,1);
 LCD16X2_Write_String(MyLCD,buffer);
 }
 //****************************INTERRUPTS----------------------------------------------------
-//----------------------------ADC INTERRUPTS------------------------------------------------
- void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-  /* Prevent unused argument(s) compilation warning */
- //adc_value=adc_buffer;
-  /* NOTE : This function should not be modified. When the callback is needed,
-            function HAL_ADC_ConvCpltCallback must be implemented in the user file.
-   */
-}
  //--------------------------TIMER INTERRUPT-----------------------------------
  //-> start timer for battery low voltage
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -475,8 +443,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	}
 	Timer_Counter_3=0;
-	//HAL_TIM_Base_Stop_IT(&htim2);
-
 	}   // end if timer_counter_3
 
 	//- give some time to battery to turn off loads
@@ -493,7 +459,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	}
 	Timer_Counter_4=0;
-	//HAL_TIM_Base_Stop_IT(&htim2);
 	}  // end if timer_counter_4
 
 	//- give some time to battery to turn off loads
@@ -675,7 +640,6 @@ else
  if(ReadHours() > hours_lcd_1 && ReadHours()< hours_lcd_2)
  {
  Timer_isOn=1;
- //relayState_1=1;
   }
  //-> seconds compare hours if equal now then compare minutes
  if(ReadHours()== hours_lcd_1 || ReadHours()== hours_lcd_2)
@@ -685,7 +649,6 @@ else
  //-> minutes must be bigger
  if(ReadMinutes()>=minutes_lcd_1) {
  Timer_isOn=1;
- //relayState_1=1;
  }
  }
  if(ReadHours()==hours_lcd_2)
@@ -693,15 +656,14 @@ else
  //-> minutes must be less
  if(ReadMinutes()< minutes_lcd_2) {
 	 Timer_isOn=1;
-	// relayState_1=1;
- }
+	 }
  }
  }
  //------------------------------Timer 2-----------------------------------------
  if(ReadHours() > hours_lcd_timer2_start && ReadHours()< hours_lcd_timer2_stop)
  {
  Timer_2_isOn=1;
-// relayState_2=1;
+
  }
  //-> seconds compare hours if equal now then compare minutes
  if(ReadHours()== hours_lcd_timer2_start || ReadHours()== hours_lcd_timer2_stop )
@@ -719,7 +681,6 @@ else
  //-> minutes must be less
  if(ReadMinutes()<minutes_lcd_timer2_stop) {
 	 Timer_2_isOn=1;
-//	 relayState_2=1;
  }
  }
  }
@@ -727,8 +688,7 @@ else
  if(ReadHours() > hours_lcd_timer3_start && ReadHours()< hours_lcd_timer3_stop)
  {
  Timer_3_isOn=1;
- //relayState_3=1;
- }
+  }
  //-> seconds compare hours if equal now then compare minutes
  if(ReadHours()== hours_lcd_timer3_start || ReadHours()== hours_lcd_timer3_stop )
  {
@@ -737,7 +697,6 @@ else
  //-> minutes must be bigger
  if(ReadMinutes()>=minutes_lcd_timer3_start) {
 	 Timer_3_isOn=1;
-//	 relayState_3=1;
  }
  }
  if(ReadHours()==hours_lcd_timer3_stop)
@@ -745,7 +704,6 @@ else
  //-> minutes must be less
  if(ReadMinutes()<minutes_lcd_timer3_stop) {
 	 Timer_3_isOn=1;
-//	 relayState_3=1;
  }
  }
  }
@@ -760,13 +718,11 @@ else
  if (ReadHours() < hours_lcd_1  && ReadHours() < hours_lcd_2 )
  {
  Timer_isOn=0;
- //relayState_1=0;
  }
 
  if (ReadHours() > hours_lcd_1  && ReadHours() > hours_lcd_2 )
  {
  Timer_isOn=0;
- //relayState_1=0;
  }
 
 
@@ -775,8 +731,7 @@ else
  if(ReadMinutes() < minutes_lcd_1)
  {
  Timer_isOn=0;
- //relayState_1=0;
- }
+  }
  }
  //-> check for hours
  if (ReadHours()==hours_lcd_2)
@@ -784,20 +739,17 @@ else
  if(ReadMinutes() > minutes_lcd_2)
  {
  Timer_isOn=0;
- //relayState_1=0;
  }
  }
  //----------------------------Second Timer--------------------------------------
  if (ReadHours() < hours_lcd_timer2_start  && ReadHours() < hours_lcd_timer2_stop )
  {
  Timer_2_isOn=0;
-// relayState_2=0;
  }
 
  if (ReadHours() > hours_lcd_timer2_start  && ReadHours() > hours_lcd_timer2_stop )
  {
  Timer_2_isOn=0;
- //relayState_2=0;
  }
 
 
@@ -806,7 +758,6 @@ else
  if(ReadMinutes() < minutes_lcd_timer2_start)
  {
  Timer_2_isOn=0;
- //relayState_2=0;
  }
  }
  //-> check for hours
@@ -815,7 +766,6 @@ else
  if(ReadMinutes() > minutes_lcd_timer2_stop)
  {
  Timer_2_isOn=0;
- //relayState_2=0;
  }
  }
  //--------------------------------TIMER 3 ----------------------------
@@ -828,8 +778,7 @@ else
   if (ReadHours() > hours_lcd_timer3_start  && ReadHours() > hours_lcd_timer3_stop )
   {
   Timer_3_isOn=0;
-  //relayState_3=0;
-  }
+   }
 
 
   if (ReadHours()==hours_lcd_timer3_start)
@@ -837,8 +786,7 @@ else
   if(ReadMinutes() < minutes_lcd_timer3_start)
   {
   Timer_3_isOn=0;
-  //relayState_3=0;
-  }
+   }
   }
   //-> check for hours
   if (ReadHours()==hours_lcd_timer3_stop)
@@ -846,8 +794,7 @@ else
   if(ReadMinutes() > minutes_lcd_timer3_stop)
   {
   Timer_3_isOn=0;
-  //relayState_3=0;
-  }
+    }
   }
  } // end of run on battery voltage
  }
@@ -982,11 +929,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
-	     //	LCD_Clear(2,7,16); // to clear lcd when grid is not available
 	  	}
-
-	    	//LCD16X2_Clear(MyLCD);
-         //  	LCD16X2_Init(MyLCD);
 		}
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
@@ -1046,7 +989,6 @@ void SetTimerOn_1()
 HAL_Delay(500);
 currentMillis_1=0,currentMillis_2=0;
 previousMiliis_1=0,previousMiliis_2=0;
-//LCD16X2_Clear(MyLCD);
 while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 		&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 
@@ -1405,8 +1347,6 @@ void SetTimerOn_2()
 //---------------------------------Set Timer 2 Off----------------------------------------------------
 void SetTimerOff_2()
 {
-	//lcd_clear();
-//	LCD16X2_Clear(MyLCD);
 	currentMillis_1=0,currentMillis_2=0;
 	previousMiliis_1=0,previousMiliis_2=0;
 	HAL_Delay(500);
@@ -1527,9 +1467,6 @@ void SetTimerOff_2()
 //---------------------------------Set Timer 3 On----------------------------------------------------
 void SetTimerOn_3()
 {
-	    //lcd_clear();
-	   // LCD16X2_Clear(MyLCD);
-
      	currentMillis_1=0,currentMillis_2=0;
 	    previousMiliis_1=0,previousMiliis_2=0;
 		HAL_Delay(500);
@@ -1757,14 +1694,11 @@ void SetTimerOff_3()
 	}
 	//-> save to epprom
 	Flash_Save();
-
 	LCD16X2_Clear(MyLCD);
 }
 //---------------------------------Set Low Battery Voltage-------------------------------------------
 void SetLowBatteryVoltage()
 {
-	//lcd_clear();
-	//LCD16X2_Clear(MyLCD);
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
@@ -2008,8 +1942,6 @@ void SetStartUpLoadsVoltage()
 //---------------------------------StartUp Timers---------------------------------------------------
 void Startup_Timers()
 {
-	  //  lcd_clear();
-	//	LCD16X2_Clear(MyLCD);
 		HAL_Delay(500);
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
@@ -2248,21 +2180,15 @@ void SetDelayOff_Timers()
 			}
 			//-> save to epprom
 			Flash_Save();
-			//lcd_clear();
 			LCD16X2_Clear(MyLCD);
-
-
-
 }
 //--------------------------------Set Voltage Mode-------------------------------------
 void SetVoltageMode()
 {
 		HAL_Delay(500);
-	//	LCD16X2_Clear(MyLCD);
 		while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 				&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 		{
-
 		    HAL_IWDG_Refresh(&hiwdg);
 			 sprintf(txt,"[11] Timer Mode");
 				LCD16X2_Set_Cursor(MyLCD,1,1);
@@ -2306,20 +2232,17 @@ void SetVoltageMode()
 //--------------------------------Set UPS MOde---------------------------------------
 void SetUPSMode()
 {
-   // lcd_clear();
- //	LCD16X2_Clear(MyLCD);
 	HAL_Delay(500);
 	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 	     HAL_IWDG_Refresh(&hiwdg);
 		 sprintf(txt,"[12] UPS Mode");
-		// lcd_puts(0,0,txt);
+
 			LCD16X2_Set_Cursor(MyLCD,1,1);
 			LCD16X2_Write_String(MyLCD,txt);
 		 if (UPSMode==0)
 		 {
-			// lcd_puts(1,8,"OFF");
 			 LCD16X2_Set_Cursor(MyLCD,2,8);
 			 LCD16X2_Write_String(MyLCD,"OFF");
 		 }
@@ -2327,7 +2250,6 @@ void SetUPSMode()
 		 {
 			 LCD16X2_Set_Cursor(MyLCD,2,8);
 			 LCD16X2_Write_String(MyLCD,"ON ");
-			// lcd_puts(1,8,"ON ");
 		 }
 
 		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
@@ -2661,15 +2583,10 @@ void SetDS1307()
 	set_ds1307_day=time_ds1307.dayofmonth;
 	set_ds1307_month=time_ds1307.month;
 	set_ds1307_year=time_ds1307.year;
-
-
 	currentMillis_1=0,currentMillis_2=0;
 	previousMiliis_1=0,previousMiliis_2=0;
-
-
-				HAL_Delay(500);
-
-				while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
+	HAL_Delay(500);
+	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
 						&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 						{
 
@@ -2935,7 +2852,6 @@ if (RunOnBatteryVoltageMode==0)
 	{
 	Timer_isOn=0;        // to continue the timer after breakout the timer when grid is available
 	relayState_1=0;
-	///EEPROM_write(0x49,0);        //- save it to eeprom if power is cut
 	//-> when grid is available and timer is on after grid so access the condition to active timer after grid is off
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  &&  RunWithOutBattery==false  )
 	{
@@ -3333,65 +3249,65 @@ void CheckForParams()
 if (hours_lcd_1< 0  || hours_lcd_1 > 23)
 {
 hours_lcd_1=8;
-Flash_Save();
+
 }
 if (minutes_lcd_1< 0  || minutes_lcd_1 > 59)
 {
 minutes_lcd_1=0;
-Flash_Save();
+
 
 }
 if (hours_lcd_2< 0  || hours_lcd_2 > 23)
 {
 hours_lcd_2=18;
-Flash_Save();
+
 }
 if (minutes_lcd_2< 0  || minutes_lcd_2 > 59)
 {
 minutes_lcd_2=0;
-Flash_Save();
+
 }
 //----------------Timer 2 ------------------------
 if (hours_lcd_timer2_start< 0  || hours_lcd_timer2_start > 23)
 {
 hours_lcd_timer2_start=9;
-Flash_Save();
+
 }
 if (minutes_lcd_timer2_start< 0  || minutes_lcd_timer2_start > 59)
 {
 minutes_lcd_timer2_start=0;
-Flash_Save();
+
 }
 if (hours_lcd_timer2_stop< 0  || hours_lcd_timer2_stop > 23)
 {
 hours_lcd_timer2_stop=17;
-Flash_Save();
+
 }
 if (minutes_lcd_timer2_stop< 0  || minutes_lcd_timer2_stop > 59)
 {
 minutes_lcd_timer2_stop=0;
-Flash_Save();
+
 }
 //---------------------------Timer 3 --------------------------------
 if (hours_lcd_timer3_start< 0  || hours_lcd_timer3_start > 23)
 {
 hours_lcd_timer3_start=9;
-Flash_Save();
+
 }
 if (minutes_lcd_timer3_start< 0  || minutes_lcd_timer3_start > 59)
 {
 minutes_lcd_timer3_start=0;
-Flash_Save();
+
 }
 if (hours_lcd_timer3_stop< 0  || hours_lcd_timer3_stop > 23)
 {
 hours_lcd_timer3_stop=17;
-Flash_Save();
+
 }
 if (minutes_lcd_timer3_stop< 0  || minutes_lcd_timer3_stop > 59)
 {
 minutes_lcd_timer3_stop=0;
-Flash_Save();
+
 }
 //---------------------------LOW Voltage------------------------------
 if (Mini_Battery_Voltage<= 0  || Mini_Battery_Voltage > 65.0 || isnan(Mini_Battery_Voltage))
@@ -3399,14 +3315,14 @@ if (Mini_Battery_Voltage<= 0  || Mini_Battery_Voltage > 65.0 || isnan(Mini_Batte
 if (SystemBatteryMode==12) Mini_Battery_Voltage=12.0;
 if (SystemBatteryMode==24) Mini_Battery_Voltage=24.5;
 if (SystemBatteryMode==48) Mini_Battery_Voltage=48.5;
-Flash_Save();
+
 }
 if (Mini_Battery_Voltage_T2<= 0  || Mini_Battery_Voltage_T2 > 65.0 || isnan(Mini_Battery_Voltage_T2))
 {
 if (SystemBatteryMode==12) Mini_Battery_Voltage_T2=12.3;
 if (SystemBatteryMode==24) Mini_Battery_Voltage_T2=25.0;
 if (SystemBatteryMode==48) Mini_Battery_Voltage_T2=49.5;
-Flash_Save();
+
 }
 
 if (Mini_Battery_Voltage_T3<= 0  || Mini_Battery_Voltage_T3 > 65.0 || isnan(Mini_Battery_Voltage_T3))
@@ -3414,7 +3330,7 @@ if (Mini_Battery_Voltage_T3<= 0  || Mini_Battery_Voltage_T3 > 65.0 || isnan(Mini
 if (SystemBatteryMode==12) Mini_Battery_Voltage_T3=12.5;
 if (SystemBatteryMode==24) Mini_Battery_Voltage_T3=25.5;
 if (SystemBatteryMode==48) Mini_Battery_Voltage_T3=50.0;
-Flash_Save();
+
 }
 //--------------------------Start Loads Voltage------------------------
 if (StartLoadsVoltage<= 0  || StartLoadsVoltage > 65.0 || isnan(StartLoadsVoltage) )
@@ -3422,14 +3338,14 @@ if (StartLoadsVoltage<= 0  || StartLoadsVoltage > 65.0 || isnan(StartLoadsVoltag
 if (SystemBatteryMode==12) StartLoadsVoltage=13.0;
 if (SystemBatteryMode==24) StartLoadsVoltage=25.5;
 if (SystemBatteryMode==48) StartLoadsVoltage=51.0;
-Flash_Save();
+
 }
 if (StartLoadsVoltage_T2<= 0  || StartLoadsVoltage_T2 > 65.0 || isnan(StartLoadsVoltage_T2))
 {
 if (SystemBatteryMode==12) StartLoadsVoltage_T2=13.2;
 if (SystemBatteryMode==24) StartLoadsVoltage_T2=26.0;
 if (SystemBatteryMode==48) StartLoadsVoltage_T2=52.0;
-Flash_Save();
+
 }
 
 if (StartLoadsVoltage_T3<= 0  || StartLoadsVoltage_T3 > 65.0 || isnan(StartLoadsVoltage_T3))
@@ -3437,59 +3353,59 @@ if (StartLoadsVoltage_T3<= 0  || StartLoadsVoltage_T3 > 65.0 || isnan(StartLoads
 if (SystemBatteryMode==12) StartLoadsVoltage_T3=13.5;
 if (SystemBatteryMode==24) StartLoadsVoltage_T3=26.5;
 if (SystemBatteryMode==48) StartLoadsVoltage_T3=54.0;
-Flash_Save();
+
 }
 
 
 if (startupTIme_1<0 || startupTIme_1> 900)
 {
 	startupTIme_1=90 ;
-	Flash_Save();
+
 }
 
 if (startupTIme_2<0 || startupTIme_3> 900)
 {
 	startupTIme_2=120 ;
-	Flash_Save();
+
 }
 
 if (startupTIme_3<0 || startupTIme_3> 900)
 {
 	startupTIme_3=180 ;
-	Flash_Save();
+
 }
 
 if (delayTimerOff_1<0 || delayTimerOff_1> 240)
 {
 	delayTimerOff_1=25 ;
-	Flash_Save();
+
 }
 
 if (delayTimerOff_2<0 || delayTimerOff_2> 240)
 {
 	delayTimerOff_2=20 ;
-	Flash_Save();
+
 }
 
 if (delayTimerOff_3<0 || delayTimerOff_3> 240)
 {
 	delayTimerOff_3=15;
-	Flash_Save();
+
 }
 
 
 if (RunOnBatteryVoltageMode<0 || RunOnBatteryVoltageMode > 1)
 {
 	RunOnBatteryVoltageMode=0;
-	Flash_Save();
+
 }
 
 if (UPSMode<0 || UPSMode > 1)
 {
 	UPSMode=0;
-	Flash_Save();
-}
 
+}
+Flash_Save(); // write to flash once
 } // end function checkforparams
 //--------------------------------WORKINING MODE------------------------------------------
 //--------------------------Working Mode Flashing Led---------------------------
@@ -3701,11 +3617,12 @@ void Factory_Settings()
 }
 
 //------------------------------------SELECT ADC CHANNEL-------------------------------
+/*
 void ADC_Select_VDD (void)
 {
 	ADC_ChannelConfTypeDef sConfig = {0};
 
-	  /** Configure Regular Channel */
+	  // Configure Regular Channel
 	  sConfig.Channel = ADC_CHANNEL_VREFINT;
 	  sConfig.Rank = ADC_REGULAR_RANK_1;
 	  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -3714,12 +3631,13 @@ void ADC_Select_VDD (void)
 	    Error_Handler();
 	  }
 }
-
+*/
+/*
 void ADC_Select_BATTERY (void)
 {
 	ADC_ChannelConfTypeDef sConfig = {0};
-	  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-	  */
+	  // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+
 	  sConfig.Channel = ADC_CHANNEL_7;
 	  sConfig.Rank = ADC_REGULAR_RANK_1;
 	  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -3728,25 +3646,7 @@ void ADC_Select_BATTERY (void)
 	    Error_Handler();
 	  }
 }
-
-//--------------------------------Check DS1307 is counting-------------------------------
-void CheckDS1307WorkingState()
-{
-if (RunOnBatteryVoltageMode==0) // if timer is on as mode
-{
-ReadDS1307_Time();
-if (time_ds1307.seconds>60) RunOnBatteryVoltageMode=1;
-} // end if RunOnBatteryVoltageMode
-}
-
-//----------------------------------checking I2c call back errors -------
- void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
-{
-  /* Prevent unused argument(s) compilation warning */
-	// pring error in lcd
-
-
-}
+*/
 //-------------------------------------MAIN LOOP-----------------------------------------
 
 /* USER CODE END 0 */
@@ -3798,7 +3698,7 @@ int main(void)
   while (1)
   {
 
-	  CheckForParams();  // done for timer 3
+	//  CheckForParams();  // done for timer 3
       CheckForSet();  // done for timer 3
 	  RunTimersNowCheck(); // done for timer 3
 	  WorkingMode();
@@ -3808,9 +3708,7 @@ int main(void)
 	  Check_Timers();    // done for timer 3
 	  TurnLoadsOffWhenGridOff();   // done for timer 3
 	  CheckSystemBatteryMode();          // done for timer 3
-	 // CheckDS1307WorkingState();
 	  HAL_Delay(200);
-
 	  HAL_IWDG_Refresh(&hiwdg);
     /* USER CODE END WHILE */
 
@@ -3891,12 +3789,12 @@ static void MX_ADC1_Init(void)
   /** Common config
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 2;
+  hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
@@ -3904,18 +3802,9 @@ static void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_VREFINT;
+  sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_7;
-  sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -3980,7 +3869,7 @@ static void MX_IWDG_Init(void)
   hiwdg.Init.Reload = 3999;
   if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
   {
-    Error_Handler	();
+    Error_Handler();
   }
   /* USER CODE BEGIN IWDG_Init 2 */
 
