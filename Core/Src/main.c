@@ -28,9 +28,13 @@
 #include <stdbool.h>
 #include <math.h>
 #include "FLASH_PAGE_F1.h"
+#include "ds1307_for_stm32_hal.h"
 //-> ref of LCD_Library :
 // https://deepbluembedded.com/stm32-lcd-16x2-tutorial-library-alphanumeric-lcd-16x2-interfacing/
 // watchdog timer RL=((time*32000)/(4*2^pr *1000))-1
+
+// ref library ds1307 :
+// https://github.com/eepj/stm32-ds1307/tree/master
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -311,15 +315,16 @@ void SetDS1307_Time (uint8_t sec, uint8_t min, uint8_t hour, uint8_t dow, uint8_
 
 void ReadDS1307_Time (void)
 {
+
+	/*
 	uint8_t get_time[7];
+
 	hal_status_ds1307=HAL_I2C_Mem_Read(&hi2c1, DS1307_ADDRESS, 0x00, 1, get_time, 7, 1000);
 	if(hal_status_ds1307 != HAL_OK)
 	{
-		HAL_I2C_DeInit(&hi2c1);
-	 	HAL_Delay(100);
-		HAL_I2C_Init(&hi2c1);
-	   // LCD16X2_Set_Cursor(MyLCD,1,9);
-	//	LCD16X2_Write_String(MyLCD,"ER") ;
+	//	HAL_I2C_DeInit(&hi2c1);
+	// 	HAL_Delay(100);
+    // 	HAL_I2C_Init(&hi2c1);
 	}
 	time_ds1307.seconds = bcdToDec(get_time[0]);
 	time_ds1307.minutes = bcdToDec(get_time[1]);
@@ -328,6 +333,15 @@ void ReadDS1307_Time (void)
 	time_ds1307.dayofmonth = bcdToDec(get_time[4]);
 	time_ds1307.month = bcdToDec(get_time[5]);
 	time_ds1307.year = bcdToDec(get_time[6]);
+
+	*/
+	// using external library
+	time_ds1307.seconds=DS1307_GetSecond();
+	time_ds1307.minutes=DS1307_GetMinute();
+	time_ds1307.hour=DS1307_GetHour();
+	time_ds1307.dayofweek=DS1307_GetDate();  // get day of waek
+	time_ds1307.month=DS1307_GetMonth();    // get month
+	time_ds1307.year=DS1307_GetYear();     // get year
 }
 
 
@@ -361,7 +375,7 @@ LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V1.7");
+LCD16X2_Write_String(MyLCD," V1.8");
 HAL_Delay(2000);
 LCD16X2_Clear(MyLCD);
 }
@@ -2692,7 +2706,11 @@ void SetDS1307()
 						  time_ds1307.minutes=set_ds1307_minutes;
 						  time_ds1307.seconds=0;
 
-						  SetDS1307_Time(time_ds1307.seconds, time_ds1307.minutes, time_ds1307.hour, time_ds1307.dayofweek, 0, time_ds1307.month, time_ds1307.year);
+						 // SetDS1307_Time(time_ds1307.seconds, time_ds1307.minutes, time_ds1307.hour, time_ds1307.dayofweek, 0, time_ds1307.month, time_ds1307.year);
+						  DS1307_SetSecond(time_ds1307.seconds);
+						  DS1307_SetMinute(time_ds1307.minutes);
+						  DS1307_SetHour(time_ds1307.hour);
+
 
 						  //----------------------------------------Setting Date-------------------------
 
@@ -2810,8 +2828,11 @@ void SetDS1307()
 			  time_ds1307.dayofmonth=set_ds1307_day;
 			  time_ds1307.year=set_ds1307_year;
 
-			  SetDS1307_Time(time_ds1307.seconds, time_ds1307.minutes, time_ds1307.hour, 0, time_ds1307.dayofmonth, time_ds1307.month, time_ds1307.year);
+			//  SetDS1307_Time(time_ds1307.seconds, time_ds1307.minutes, time_ds1307.hour, 0, time_ds1307.dayofmonth, time_ds1307.month, time_ds1307.year);
 
+			  DS1307_SetDate( time_ds1307.dayofmonth);
+			  DS1307_SetMonth(time_ds1307.month);
+			  DS1307_SetYear( time_ds1307.year);
 	}
 //---------------------------------Check Timers------------------------------------------------------
 void Check_Timers()
@@ -3584,7 +3605,7 @@ void Factory_Settings()
 	delayTimerOff_1=25;
 	delayTimerOff_2=20;
 	delayTimerOff_3=15;
-	usedInsideRTC=0;  // use ds1307 as default clock source
+	usedInsideRTC=1;  // use internal as default
 	//-> write data to array
 	flash_data[0]=hours_lcd_1;
 	flash_data[1]=minutes_lcd_1;
@@ -3692,6 +3713,7 @@ int main(void)
    Config();
    Flash_Load();
    HAL_TIM_Base_Start_IT(&htim4); // for counting real seconds and make lcd off
+   DS1307_Init(&hi2c1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -3699,7 +3721,7 @@ int main(void)
   while (1)
   {
 
-	  //CheckForParams();  // done for timer 3
+	//  CheckForParams();  // done for timer 3
       CheckForSet();  // done for timer 3
 	  RunTimersNowCheck(); // done for timer 3
 	  WorkingMode();
