@@ -86,7 +86,7 @@ TIM_HandleTypeDef htim4;
 /* USER CODE BEGIN PV */
 char time[10];
 char date[10];
-char relayState[3];
+char relayState[32];
 uint8_t alarm =0;
 uint32_t adc_value=0;
 uint32_t adc_vref=0;
@@ -189,6 +189,7 @@ uint32_t currentMillis_2=0,previousMiliis_2=0;
 char usedInsideRTC=0;
 char relayState_1=0,relayState_2=0,relayState_3=0; // for saving relay state
 HAL_StatusTypeDef hal_status_ds1307; // for reading ds1307 status
+bool negativeRelayMode=0; // for negative relay output
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -234,6 +235,7 @@ void SetDelayOff_Timers();
 //void ADC_Select_BATTERY(); // for selecting reading battery voltage
 //void CheckDS1307WorkingState();
 void SelectRTC();
+void SetNegativeRelayMode(); // to set relay mode
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -296,8 +298,6 @@ void display_time (void)
 	}
 
 }
-
-
 //-----------------------------------DS1307 TIME--------------------------------------
 void SetDS1307_Time (uint8_t sec, uint8_t min, uint8_t hour, uint8_t dow, uint8_t dom, uint8_t month, uint8_t year)
 {
@@ -375,9 +375,10 @@ LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V1.8");
+LCD16X2_Write_String(MyLCD," V1.9");
 HAL_Delay(2000);
 LCD16X2_Clear(MyLCD);
+
 }
 //----------------------------------LCD_CLEAR------------------------------------------
 /*
@@ -453,8 +454,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	CountCutSecondsRealTime_T1=0;
 	SecondsRealTimePv_ReConnect_T1=0;
 	relayState_1=0;
-	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
-
+	//HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode); // must be zero
+	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
 	}
 	Timer_Counter_3=0;
 	}   // end if timer_counter_3
@@ -469,7 +470,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	CountSecondsRealTimePv_ReConnect_T2=0;
 	SecondsRealTimePv_ReConnect_T2=0;
 	relayState_2=0;
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
 
 	}
 	Timer_Counter_4=0;
@@ -485,7 +487,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	CountSecondsRealTimePv_ReConnect_T3=0;
 	SecondsRealTimePv_ReConnect_T3=0;
 	relayState_3=0;
-	HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
+	HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 
 	}
 	Timer_Counter_5=0;
@@ -841,12 +844,13 @@ void Flash_Save()
 	flash_data[24]=delayTimerOff_2;
 	flash_data[25]=delayTimerOff_3;
 	flash_data[26]=usedInsideRTC;
-	Flash_Write_Data(Flash_Address, flash_data, 27);
+	flash_data[27]=negativeRelayMode;
+	Flash_Write_Data(Flash_Address, flash_data, 28);
 }
 //-> to read flash contents to variable
 void Flash_Load()
 {
-Flash_Read_Data(0x0801FC00, flash_data, 27);
+Flash_Read_Data(0x0801FC00, flash_data, 28);
 hours_lcd_1=flash_data[0];
 minutes_lcd_1=flash_data[1];
 hours_lcd_2=flash_data[2];
@@ -874,7 +878,7 @@ delayTimerOff_1=flash_data[23];
 delayTimerOff_2=flash_data[24];
 delayTimerOff_3=flash_data[25];
 usedInsideRTC=flash_data[26];
-
+negativeRelayMode=flash_data[27];
 }
 
 //------------------------------------Interrupt for  Enter Button ---------------------------------------
@@ -900,7 +904,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		SecondsRealTime=0;
 		CountSecondsRealTime=0;
 		relayState_1=0;
-		HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
 
 		}
 
@@ -909,7 +913,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			CountSecondsRealTime=0;
 			SecondsRealTime=0;
 			relayState_2=0;
-		HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
 
 		}
 
@@ -919,7 +923,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			CountSecondsRealTime=0;
 			SecondsRealTime=0;
 			relayState_3=0;
-		    HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+		    HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 
 		}
 
@@ -939,9 +943,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			relayState_1=0;
 			relayState_2=0;
 			relayState_3=0;
-			HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
+			HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
+			HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 	  	}
 		}
   /* NOTE: This function Should not be modified, when the callback is needed,
@@ -988,6 +992,8 @@ if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
 SelectRTC();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
 if(usedInsideRTC==0)SetDS1307(); else SetRTC_Time();
+if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
+SetNegativeRelayMode();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
 LCD16X2_Clear(MyLCD);
 HAL_Delay(500);
@@ -2322,12 +2328,12 @@ void SelectRTC()
 			if (HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET  )
 			{
 			HAL_Delay(100);
-			usedInsideRTC=1;
+			usedInsideRTC=0;
 			}
 			if (HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin	)==GPIO_PIN_SET)
 			{
 			HAL_Delay(100);
-			usedInsideRTC=0;
+			usedInsideRTC=1;
 			}
 			}    //end while incremet and decremet
 
@@ -2834,6 +2840,70 @@ void SetDS1307()
 			  DS1307_SetMonth(time_ds1307.month);
 			  DS1307_SetYear( time_ds1307.year);
 	}
+//------------------------------------Negative Relay Mode---------------------------------------
+void SetNegativeRelayMode()
+{
+	/*
+	 * for this mode i found that when the mode is off (normal state):
+	 * relay on = relay on
+	 * relay off = relay off
+	 * but when the mode is on i need the reverse state
+	 * relay on = must turn off relay
+	 * relay off = must turn on relay
+	 * so i found :
+	 * when reset is required and mode is off (negativeRelayMode==0) => HAL_GPIO_Write(GPIO_Pin_Reset)= HAL_GPIO_Write(negativeRelayMode)
+	 * when set is required and mode is off (negativeRelayMode==0) => HAL_GPIO_Write(GPIO_Pin_Set)= HAL_GPIO_Write(~negativeRelayMode)
+	 * -
+	 * when reset is required and mode is on (negativeRelayMode==1)  => HAL_GPIO_Write(GPIO_Pin_Reset)= HAL_GPIO_Write(negativeRelayMode)
+	 * when set is required and mode is on (negativeRelayMode==1)    => HAL_GPIO_Write(GPIO_Pin_Set)= HAL_GPIO_Write(~negativeRelayMode)
+	 * so in final:
+	 * in reset the negative is same as reset
+	 * but in set the negative is reverse than set
+	 *
+	 */
+
+	HAL_Delay(500);
+	while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET
+			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
+	{
+	     HAL_IWDG_Refresh(&hiwdg);
+	   	 sprintf(txt,"[15] Reverse OUT");
+
+			LCD16X2_Set_Cursor(MyLCD,1,1);
+			LCD16X2_Write_String(MyLCD,txt);
+		 if (negativeRelayMode==0)
+		 {
+			 LCD16X2_Set_Cursor(MyLCD,2,8);
+			 LCD16X2_Write_String(MyLCD,"OFF");
+		 }
+		 if (negativeRelayMode==1)
+		 {
+			 LCD16X2_Set_Cursor(MyLCD,2,8);
+			 LCD16X2_Write_String(MyLCD,"ON ");
+		 }
+
+		 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break ;
+
+	while(HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET
+			|| HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin)==GPIO_PIN_SET )
+	{
+		if (HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET  )
+		{
+		HAL_Delay(100);
+		negativeRelayMode=1;
+		}
+		if (HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin	)==GPIO_PIN_SET)
+		{
+		HAL_Delay(100);
+		negativeRelayMode=0;
+		}
+		}    //end while incremet and decremet
+
+	}   // end while Enter
+	Flash_Save();
+	LCD16X2_Clear(MyLCD);
+	HAL_Delay(500);
+}
 //---------------------------------Check Timers------------------------------------------------------
 void Check_Timers()
 {
@@ -2856,14 +2926,15 @@ if (RunOnBatteryVoltageMode==0)
 	//-> when grid is available and timer is on after grid so access the condition to active timer after grid is off
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false )
 	{
-	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
 
+	 //HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
+	 HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 
 	}
 	//-> if run with out battery is selected
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && RunWithOutBattery==true )
 	{
-		HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 	}
 	} // end if ac_available
 	//-> Turn Load off
@@ -2878,7 +2949,7 @@ if (RunOnBatteryVoltageMode==0)
 	//for the turn off there is no need for delay
 	SecondsRealTimePv_ReConnect_T1=0;
 	CountSecondsRealTimePv_ReConnect_T1=0;
-	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
 
 	}
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && RunWithOutBattery==true  )
@@ -2886,7 +2957,7 @@ if (RunOnBatteryVoltageMode==0)
 	//for the turn off there is no need for delay
 	SecondsRealTimePv_ReConnect_T1=0;
 	CountSecondsRealTimePv_ReConnect_T1=0;
-	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
 	}
 	}
 	//----------------------------------- Timer 1 End---------------------------------------------------------
@@ -2900,12 +2971,12 @@ if (RunOnBatteryVoltageMode==0)
 		//-> when grid is available and timer is on after grid so access the condition to active timer after grid is off
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false)
 	{
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 	}
 
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && RunWithOutBattery==true)
 	{
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 	}
 	} // end if ac_available
 
@@ -2916,14 +2987,14 @@ if (RunOnBatteryVoltageMode==0)
 	//-> when grid is available and timer is on after grid so access the condition to active timer after grid is off
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1 && RunWithOutBattery==false )
 	{
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
 	SecondsRealTimePv_ReConnect_T2=0;
 	CountSecondsRealTimePv_ReConnect_T2=0;
 	}
 
 	if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && RunWithOutBattery==true )
 	{
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
 	SecondsRealTimePv_ReConnect_T2=0;
 	CountSecondsRealTimePv_ReConnect_T2=0;
 	}
@@ -2938,12 +3009,12 @@ if (RunOnBatteryVoltageMode==0)
 			//-> when grid is available and timer is on after grid so access the condition to active timer after grid is off
 		if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage_T3 && RunWithOutBattery==false)
 		{
-		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
 		}
 
 		if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && RunWithOutBattery==true)
 		{
-		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
 		}
 		} // end if ac_available
 
@@ -2954,7 +3025,7 @@ if (RunOnBatteryVoltageMode==0)
 		//-> when grid is available and timer is on after grid so access the condition to active timer after grid is off
 		if (AC_Available==GPIO_PIN_SET && Timer_Enable==1 && RunWithOutBattery==false )
 		{
-		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 		SecondsRealTimePv_ReConnect_T3=0;
 		CountSecondsRealTimePv_ReConnect_T3=0;
 
@@ -2962,7 +3033,7 @@ if (RunOnBatteryVoltageMode==0)
 
 		if (AC_Available==GPIO_PIN_SET && Timer_Enable==1  && RunWithOutBattery==true )
 		{
-		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 		SecondsRealTimePv_ReConnect_T3=0;
 		CountSecondsRealTimePv_ReConnect_T3=0;
 		}
@@ -2978,7 +3049,7 @@ if (AC_Available==GPIO_PIN_SET && Timer_isOn==1 && Vin_Battery >= StartLoadsVolt
 {
 CountSecondsRealTimePv_ReConnect_T1=1;
 relayState_1=1;
-if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)     HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
+if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)     HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 
 }
 if (AC_Available==GPIO_PIN_SET && Timer_isOn==1  && RunWithOutBattery==true && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==0 )
@@ -2986,7 +3057,7 @@ if (AC_Available==GPIO_PIN_SET && Timer_isOn==1  && RunWithOutBattery==true && T
 
 	CountSecondsRealTimePv_ReConnect_T1=1;
 	relayState_1=1;
-if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
+if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 
 }
 
@@ -2996,7 +3067,7 @@ if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==1 && Vin_Battery >= StartLoadsVo
 	CountSecondsRealTimePv_ReConnect_T2=1;
 	relayState_2=1;
 if (  SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 }
 
 if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==1 &&  RunWithOutBattery==true && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==0)            //run without battery
@@ -3004,7 +3075,7 @@ if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==1 &&  RunWithOutBattery==true &&
 	CountSecondsRealTimePv_ReConnect_T2=1;
 	relayState_2=1;
 if (  SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 
 }
 
@@ -3015,7 +3086,7 @@ if (AC_Available==GPIO_PIN_SET && Timer_3_isOn==1 && Vin_Battery >= StartLoadsVo
 	CountSecondsRealTimePv_ReConnect_T3=1;
 	relayState_3=1;
 if (  SecondsRealTimePv_ReConnect_T3 > startupTIme_3)
-	HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
 }
 
 if (AC_Available==GPIO_PIN_SET && Timer_3_isOn==1 &&  RunWithOutBattery==true && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==0)            //run without battery
@@ -3023,7 +3094,7 @@ if (AC_Available==GPIO_PIN_SET && Timer_3_isOn==1 &&  RunWithOutBattery==true &&
 	CountSecondsRealTimePv_ReConnect_T3=1;
 	relayState_3=1;
 if (  SecondsRealTimePv_ReConnect_T3 > startupTIme_3)
-	HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
 
 }
 //*************************************BYPASS SYSTEM***********************************************
@@ -3038,17 +3109,17 @@ relayState_3=1;
 if(SecondsRealTime >= startupTIme_1 && AC_Available==0)
 {
 
-HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 }
 if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
 {
 
-HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 }
 if(SecondsRealTime >= startupTIme_3 && AC_Available==0)
 {
 
-HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
 }
 } // end
 //-----------------------------------UPO MODE------------------------------------------------------
@@ -3063,24 +3134,24 @@ relayState_3=1;
 if( AC_Available==0 && LoadsAlreadySwitchedOFF==0)
 {
 LoadsAlreadySwitchedOFF=1;
-HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
-HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
-HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
+HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
+HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 relayState_1=0;
 relayState_2=0;
 relayState_3=0;
 }
 if(SecondsRealTime >= startupTIme_1 && AC_Available==0 && LoadsAlreadySwitchedOFF==1 )
 {
-	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 }
 if(SecondsRealTime >= startupTIme_2 && AC_Available==0 && LoadsAlreadySwitchedOFF==1 )
 {
-HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 }
 if(SecondsRealTime >= startupTIme_3 && AC_Available==0 && LoadsAlreadySwitchedOFF==1 )
 {
-HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
 }
 }
 //------------------------------------END BYPASS SYSTEM---------------------------------------------
@@ -3091,7 +3162,7 @@ if (AC_Available==GPIO_PIN_SET  && Vin_Battery >= StartLoadsVoltage && RunWithOu
 CountSecondsRealTimePv_ReConnect_T1=1;
 relayState_1=1;
 if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)
-HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 }
 
 if (AC_Available==GPIO_PIN_SET && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==1)     //run with battery
@@ -3099,7 +3170,7 @@ if (AC_Available==GPIO_PIN_SET && Vin_Battery >= StartLoadsVoltage_T2 && RunWith
 	CountSecondsRealTimePv_ReConnect_T2=1;
 	relayState_2=1;
 if (  SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
-HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 }
 //-> timer 3
 if (AC_Available==GPIO_PIN_SET && Vin_Battery >= StartLoadsVoltage_T3 && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==1)     //run with battery
@@ -3107,7 +3178,8 @@ if (AC_Available==GPIO_PIN_SET && Vin_Battery >= StartLoadsVoltage_T3 && RunWith
 	CountSecondsRealTimePv_ReConnect_T3=1;
 	relayState_3=1;
 if (  SecondsRealTimePv_ReConnect_T3 > startupTIme_3)
-HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
+
 }
 //----------------------------------END RUN ON BATTERY VOLTAGE---------------------------------------
 //**************************************TURN OFF LOADS***********************************************
@@ -3144,7 +3216,7 @@ void TurnLoadsOffWhenGridOff()
 		CountSecondsRealTimePv_ReConnect_T1=0;
 		relayState_1=0;
 
-	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
 	}
     //-> timer 2
 	if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
@@ -3154,7 +3226,7 @@ void TurnLoadsOffWhenGridOff()
 		SecondsRealTimePv_ReConnect_T2=0;
 		CountSecondsRealTimePv_ReConnect_T2=0;
 		relayState_2=0;
-	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
 
 	}
 
@@ -3166,7 +3238,7 @@ void TurnLoadsOffWhenGridOff()
 			SecondsRealTimePv_ReConnect_T3=0;
 			CountSecondsRealTimePv_ReConnect_T3=0;
 			relayState_3=0;
-		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 
 		}
 
@@ -3185,9 +3257,9 @@ void TurnLoadsOffWhenGridOff()
 		relayState_1=0;
 		relayState_2=0;
 		relayState_3=0;
-	    HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
-      	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
-	    HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
+      	HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
+	    HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 	}
 }
 //***************************************CheckBatterySystem******************************************
@@ -3244,10 +3316,19 @@ void Screen_1()
 
 
    // -> display state of relays
-
+    if (negativeRelayMode==0)
+    {
 	LCD16X2_Set_Cursor(MyLCD,1,11);
 	sprintf((char*)relayState,"R=%01d%01d%01d",relayState_1, relayState_2, relayState_3);
 	LCD16X2_Write_String(MyLCD,relayState);
+    }
+
+    else
+    {
+    	LCD16X2_Set_Cursor(MyLCD,1,11);
+    	sprintf((char*)relayState,"R=%01d%01d%01d",!relayState_1, !relayState_2, !relayState_3);
+    	LCD16X2_Write_String(MyLCD,relayState);
+    }
 
 
 
@@ -3498,18 +3579,18 @@ if ( HAL_GPIO_ReadPin(INCREMENT_GPIO_Port, INCREMENT_Pin)==GPIO_PIN_SET
 			if (  RunLoadsByBass==1 )
 				{
 				relayState_1=1;
-				HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, !negativeRelayMode);
 
 				}
 			if (RunLoadsByBass>=2 )
 			{
 				relayState_2=1;
-				HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, !negativeRelayMode);
 			}
 			if (RunLoadsByBass>=3 )
 				{
 				relayState_3=1;
-				HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, !negativeRelayMode);
 				}
 		} // end if
       } // end main if
@@ -3527,9 +3608,9 @@ if ( HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin)==GPIO_PIN_SET
 			relayState_1=0;
 			relayState_2=0;
 			relayState_3=0;
-			HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode);
+			HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode);
+			HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode);
 		} // end if
       } // end main if
     //-> RESET TO FACTORY SETTINGS
@@ -3606,6 +3687,7 @@ void Factory_Settings()
 	delayTimerOff_2=20;
 	delayTimerOff_3=15;
 	usedInsideRTC=1;  // use internal as default
+	negativeRelayMode=0;
 	//-> write data to array
 	flash_data[0]=hours_lcd_1;
 	flash_data[1]=minutes_lcd_1;
@@ -3634,10 +3716,10 @@ void Factory_Settings()
 	flash_data[24]=delayTimerOff_2;
 	flash_data[25]=delayTimerOff_3;
 	flash_data[26]=usedInsideRTC;
+	flash_data[27]=negativeRelayMode;
     //-> save data to flash
-	Flash_Write_Data(Flash_Address, flash_data, 27);
+	Flash_Write_Data(Flash_Address, flash_data, 28);
 }
-
 //------------------------------------SELECT ADC CHANNEL-------------------------------
 /*
 void ADC_Select_VDD (void)
@@ -3714,6 +3796,11 @@ int main(void)
    Flash_Load();
    HAL_TIM_Base_Start_IT(&htim4); // for counting real seconds and make lcd off
    DS1307_Init(&hi2c1);
+
+  //-> to config relays at zero condition
+   HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode); // to put relay as it starts at Zero condition
+   HAL_GPIO_WritePin(RELAY_L_2_GPIO_Port, RELAY_L_2_Pin, negativeRelayMode); // to put relay as it starts at Zero condition
+   HAL_GPIO_WritePin(RELAY_L_3_GPIO_Port, RELAY_L_3_Pin, negativeRelayMode); // to put relay as it starts at Zero condition
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -3728,8 +3815,8 @@ int main(void)
 	  CheckForTimerActivationInRange(); // done for timer 3
 	  CheckForTimerActivationOutRange();  //done for timer 3
 	  Screen_1();
-	  Check_Timers();    // done for timer 3
-	  TurnLoadsOffWhenGridOff();   // done for timer 3
+	  Check_Timers();                    // done for timer 3
+	  TurnLoadsOffWhenGridOff();         // done for timer 3
 	  CheckSystemBatteryMode();          // done for timer 3
 	  HAL_Delay(200);
 	  HAL_IWDG_Refresh(&hiwdg);
