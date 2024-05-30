@@ -375,7 +375,7 @@ LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V1.9");
+LCD16X2_Write_String(MyLCD," V2.0");
 HAL_Delay(2000);
 LCD16X2_Clear(MyLCD);
 
@@ -989,7 +989,7 @@ SetVoltageMode();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
 SetUPSMode();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
-SelectRTC();
+//SelectRTC();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
 if(usedInsideRTC==0)SetDS1307(); else SetRTC_Time();
 if (HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_SET) break;
@@ -2380,7 +2380,7 @@ previousMiliis_1=0,previousMiliis_2=0;
 									 if(currentMillis_2-previousMiliis_2 >=1000)
 									 {
 									 previousMiliis_2=currentMillis_2;
-									 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+									 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 									 LCD16X2_Set_Cursor(MyLCD,1,1);
 									 LCD16X2_Write_String(MyLCD,txt);
 									 }
@@ -2400,7 +2400,7 @@ previousMiliis_1=0,previousMiliis_2=0;
 							|| HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin)==GPIO_PIN_SET )
 					{
 						 HAL_IWDG_Refresh(&hiwdg);
-						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+						 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 						 LCD16X2_Set_Cursor(MyLCD,1,1);
 						 LCD16X2_Write_String(MyLCD,txt);
 
@@ -2433,7 +2433,7 @@ previousMiliis_1=0,previousMiliis_2=0;
 						 if(currentMillis_2-previousMiliis_2 >=1000)
 						 {
 						 previousMiliis_2=currentMillis_2;
-						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+						 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 						 LCD16X2_Set_Cursor(MyLCD,1,1);
 						 LCD16X2_Write_String(MyLCD,txt);
 						 }
@@ -2452,7 +2452,7 @@ previousMiliis_1=0,previousMiliis_2=0;
 							|| HAL_GPIO_ReadPin(DECREMENT_GPIO_Port, DECREMENT_Pin)==GPIO_PIN_SET )
 					{
 						 HAL_IWDG_Refresh(&hiwdg);
-						 sprintf((char*)txt,"[14] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
+						 sprintf((char*)txt,"[13] H:%02d-M:%02d ",set_ds1307_hours,set_ds1307_minutes);
 						 LCD16X2_Set_Cursor(MyLCD,1,1);
 						 LCD16X2_Write_String(MyLCD,txt);
 
@@ -2867,7 +2867,7 @@ void SetNegativeRelayMode()
 			&& HAL_GPIO_ReadPin(EXIT_GPIO_Port, EXIT_Pin)==GPIO_PIN_RESET)
 	{
 	     HAL_IWDG_Refresh(&hiwdg);
-	   	 sprintf(txt,"[15] Reverse OUT");
+	   	 sprintf(txt,"[14] Reverse OUT");
 
 			LCD16X2_Set_Cursor(MyLCD,1,1);
 			LCD16X2_Write_String(MyLCD,txt);
@@ -3792,10 +3792,10 @@ int main(void)
   MX_RTC_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-   Config();
-   Flash_Load();
-   HAL_TIM_Base_Start_IT(&htim4); // for counting real seconds and make lcd off
-   DS1307_Init(&hi2c1);
+  Config();
+  Flash_Load();
+  HAL_TIM_Base_Start_IT(&htim4); // for counting real seconds and make lcd off
+  DS1307_Init(&hi2c1);
 
   //-> to config relays at zero condition
    HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, negativeRelayMode); // to put relay as it starts at Zero condition
@@ -3808,11 +3808,11 @@ int main(void)
   while (1)
   {
 
-	//  CheckForParams();  // done for timer 3
+	//CheckForParams();  // done for timer 3
       CheckForSet();  // done for timer 3
 	  RunTimersNowCheck(); // done for timer 3
 	  WorkingMode();
-	  CheckForTimerActivationInRange(); // done for timer 3
+	  CheckForTimerActivationInRange();  // done for timer 3
 	  CheckForTimerActivationOutRange();  //done for timer 3
 	  Screen_1();
 	  Check_Timers();                    // done for timer 3
