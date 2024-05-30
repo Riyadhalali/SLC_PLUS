@@ -971,7 +971,7 @@ while(HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET && HAL_GPIO_Rea
     switch(programNumber)
     		{
     		case 1:
-    		    sprintf((char*)txt,"[%1d] H:%02d-M:%02d",programNumber,hours_lcd_1,minutes_lcd_1);
+    		    sprintf((char*)txt,"[%1d] H:%02d-M:%02d ",programNumber,hours_lcd_1,minutes_lcd_1);
     			LCD16X2_Set_Cursor(MyLCD,1,1);
     		    LCD16X2_Write_String(MyLCD,txt);
     		    while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_RESET)
@@ -980,7 +980,7 @@ while(HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET && HAL_GPIO_Rea
     		    }
     	    	break;
     		case 2:
-    			 sprintf((char*)txt,"[%1d] H:%02d-M:%02d",programNumber,hours_lcd_2,minutes_lcd_2);
+    			 sprintf((char*)txt,"[%1d] H:%02d-M:%02d ",programNumber,hours_lcd_2,minutes_lcd_2);
     			LCD16X2_Set_Cursor(MyLCD,1,1);
     		    LCD16X2_Write_String(MyLCD,txt);
     		    while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_RESET)
@@ -989,7 +989,7 @@ while(HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET && HAL_GPIO_Rea
     		    }
     	    	break;
     		case 3:
-     		    sprintf((char*)txt,"[%1d] H:%02d-M:%02d",programNumber,hours_lcd_timer2_start,minutes_lcd_timer2_start);
+     		    sprintf((char*)txt,"[%1d] H:%02d-M:%02d ",programNumber,hours_lcd_timer2_start,minutes_lcd_timer2_start);
     			LCD16X2_Set_Cursor(MyLCD,1,1);
     		    LCD16X2_Write_String(MyLCD,txt);
     		    while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_RESET)
@@ -998,7 +998,7 @@ while(HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET && HAL_GPIO_Rea
     		    }
     			break;
     		case 4 :
-   			    sprintf((char*)txt,"[%1d] H:%02d-M:%02d",programNumber,hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
+   			    sprintf((char*)txt,"[%1d] H:%02d-M:%02d ",programNumber,hours_lcd_timer2_stop,minutes_lcd_timer2_stop);
     			LCD16X2_Set_Cursor(MyLCD,1,1);
     		    LCD16X2_Write_String(MyLCD,txt);
     		    while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_RESET)
@@ -1007,7 +1007,7 @@ while(HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET && HAL_GPIO_Rea
     		    }
     			break;
     		case 5 :
-				sprintf((char*)txt,"[%1d] H:%02d-M:%02d",programNumber,hours_lcd_timer3_start,minutes_lcd_timer3_start);
+				sprintf((char*)txt,"[%1d] H:%02d-M:%02d ",programNumber,hours_lcd_timer3_start,minutes_lcd_timer3_start);
     			LCD16X2_Set_Cursor(MyLCD,1,1);
     		    LCD16X2_Write_String(MyLCD,txt);
     		    while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_RESET)
@@ -1016,7 +1016,7 @@ while(HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET && HAL_GPIO_Rea
     		    }
     			break;
     		case 6 :
-   			    sprintf((char*)txt,"[%1d] H:%02d-M:%02d",programNumber,hours_lcd_timer3_stop,minutes_lcd_timer3_stop);
+   			    sprintf((char*)txt,"[%1d] H:%02d-M:%02d ",programNumber,hours_lcd_timer3_stop,minutes_lcd_timer3_stop);
     			LCD16X2_Set_Cursor(MyLCD,1,1);
     		    LCD16X2_Write_String(MyLCD,txt);
     		    while (HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_RESET)
@@ -1079,6 +1079,10 @@ while(HAL_GPIO_ReadPin(Enter_GPIO_Port, Enter_Pin)==GPIO_PIN_SET && HAL_GPIO_Rea
     		    }
     			break;
     		case 13 :
+    			/* Get the RTC current Time */
+    			HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
+    			set_ds1307_hours=gTime.Hours;
+    			set_ds1307_minutes=gTime.Minutes;
 				 sprintf((char*)txt,"[%2d] H:%02d-M:%02d  ",programNumber,set_ds1307_hours,set_ds1307_minutes);
     			LCD16X2_Set_Cursor(MyLCD,1,1);
     		    LCD16X2_Write_String(MyLCD,txt);
