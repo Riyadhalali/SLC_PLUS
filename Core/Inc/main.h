@@ -76,9 +76,8 @@ void Error_Handler(void);
 #define RELAY_L_1_GPIO_Port GPIOA
 #define BACKLIGHT_Pin GPIO_PIN_12
 #define BACKLIGHT_GPIO_Port GPIOA
-#define Ac_Available_Pin GPIO_PIN_7
-#define Ac_Available_GPIO_Port GPIOB
-#define Ac_Available_EXTI_IRQn EXTI9_5_IRQn
+#define AC_Available_Pin GPIO_PIN_7
+#define AC_Available_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
