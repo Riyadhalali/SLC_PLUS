@@ -4177,7 +4177,7 @@ int main(void)
 	  TurnLoadsOffWhenGridOff();         // done
 	  CheckSystemBatteryMode();          // done
 	  HAL_Delay(5);
-	//  //HAL_IWDG_Refresh(&hiwdg);
+     //HAL_IWDG_Refresh(&hiwdg);
 
     /* USER CODE END WHILE */
 
