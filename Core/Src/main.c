@@ -367,7 +367,7 @@ LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V2.5");
+LCD16X2_Write_String(MyLCD," V2.7");
 HAL_Delay(2000);
 LCD16X2_Clear(MyLCD);
 
@@ -885,7 +885,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		HAL_GPIO_WritePin(BACKLIGHT_GPIO_Port, BACKLIGHT_Pin, GPIO_PIN_SET);
 		UpdateScreenTime=0;
     }
-
+/*
 	//-------------------------------------------AC_AVAILABLE_INTRUPPT----------------------------------------------------
 	if (GPIO_Pin==AC_Available_Pin)
 	{
@@ -897,7 +897,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			previousMiliis_3=currentMillis_3;
 
 		 //-> functions for shutting down loads if there is no timers and grid is off
-		if(AC_Available==GPIO_PIN_SET && Timer_isOn==0  && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)
+		if(AC_Available==GPIO_PIN_SET && Timer_isOn==0  && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0 && UPSMode==0)
 		{
 
 		SecondsRealTime=0;
@@ -906,7 +906,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, 0);
 
 		}
-		if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+		if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0 && UPSMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 		{
 			CountSecondsRealTime=0;
 			SecondsRealTime=0;
@@ -915,7 +915,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 		}
 
-	  if (AC_Available==GPIO_PIN_SET && Timer_3_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+	  if (AC_Available==GPIO_PIN_SET && Timer_3_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0 && UPSMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 		{
 			CountSecondsRealTime=0;
 			SecondsRealTime=0;
@@ -943,7 +943,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  	}
 		}
 	} // end if current millis
-
+*/  //end of ac
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
    */
@@ -3469,7 +3469,7 @@ CountSecondsRealTime=1;
 relayState_1=1;
 relayState_2=1;
 relayState_3=1;
-if( AC_Available==0 && LoadsAlreadySwitchedOFF==0)
+if( AC_Available==GPIO_PIN_RESET && LoadsAlreadySwitchedOFF==0)
 {
 LoadsAlreadySwitchedOFF=1;
 HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, 0);
@@ -3547,7 +3547,7 @@ void TurnLoadsOffWhenGridOff()
 {
 	//-> timer 1
 
-	if(AC_Available==GPIO_PIN_SET && Timer_isOn==0 && RunLoadsByBass==0  && RunOnBatteryVoltageMode==0)
+	if(AC_Available==GPIO_PIN_SET && Timer_isOn==0 && RunLoadsByBass==0  && RunOnBatteryVoltageMode==0 )
 	{
 		SecondsRealTime=0;
 		CountSecondsRealTime=0;
@@ -3558,7 +3558,7 @@ void TurnLoadsOffWhenGridOff()
 	HAL_GPIO_WritePin(RELAY_L_1_GPIO_Port, RELAY_L_1_Pin, 0);
 	}
     //-> timer 2
-	if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+	if (AC_Available==GPIO_PIN_SET && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0 )  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 	{
 		SecondsRealTime=0;
 		CountSecondsRealTime=0;
@@ -3570,7 +3570,7 @@ void TurnLoadsOffWhenGridOff()
 	}
 
 	//-> timer 3
-	if (AC_Available==GPIO_PIN_SET && Timer_3_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+	if (AC_Available==GPIO_PIN_SET && Timer_3_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0 )  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 		{
 			SecondsRealTime=0;
 			CountSecondsRealTime=0;
@@ -3582,7 +3582,7 @@ void TurnLoadsOffWhenGridOff()
 		}
 
 	//-> upo mode
-	if (AC_Available==GPIO_PIN_SET &&  RunLoadsByBass==0 && UPSMode==1 && LoadsAlreadySwitchedOFF==1)
+	if (AC_Available==GPIO_PIN_SET &&  RunLoadsByBass==0 && UPSMode==1 && LoadsAlreadySwitchedOFF==1 )
 	{
 		LoadsAlreadySwitchedOFF=0;
 		SecondsRealTime=0;
@@ -4176,8 +4176,9 @@ int main(void)
 	  Check_Timers();                    // done
 	  TurnLoadsOffWhenGridOff();         // done
 	  CheckSystemBatteryMode();          // done
-	  HAL_Delay(50);
+	  HAL_Delay(5);
 	//  //HAL_IWDG_Refresh(&hiwdg);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -4528,11 +4529,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : Enter_Pin AC_Available_Pin */
-  GPIO_InitStruct.Pin = Enter_Pin|AC_Available_Pin;
+  /*Configure GPIO pin : Enter_Pin */
+  GPIO_InitStruct.Pin = Enter_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(Enter_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB10 PB11 PB12 PB13
                            PB14 PB15 */
@@ -4543,12 +4544,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : AC_Available_Pin */
+  GPIO_InitStruct.Pin = AC_Available_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(AC_Available_GPIO_Port, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 3, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
