@@ -885,7 +885,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		HAL_GPIO_WritePin(BACKLIGHT_GPIO_Port, BACKLIGHT_Pin, GPIO_PIN_SET);
 		UpdateScreenTime=0;
     }
-/*
+
 	//-------------------------------------------AC_AVAILABLE_INTRUPPT----------------------------------------------------
 	if (GPIO_Pin==AC_Available_Pin)
 	{
@@ -943,7 +943,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  	}
 		}
 	} // end if current millis
-*/  //end of ac
+  //end of ac
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
    */
@@ -4529,11 +4529,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : Enter_Pin */
-  GPIO_InitStruct.Pin = Enter_Pin;
+  /*Configure GPIO pins : Enter_Pin AC_Available_Pin */
+  GPIO_InitStruct.Pin = Enter_Pin|AC_Available_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(Enter_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB10 PB11 PB12 PB13
                            PB14 PB15 */
@@ -4543,12 +4543,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : AC_Available_Pin */
-  GPIO_InitStruct.Pin = AC_Available_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(AC_Available_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 2, 0);
