@@ -79,6 +79,7 @@ RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
@@ -202,6 +203,7 @@ static void MX_TIM4_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_RTC_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 void SetupProgram(void);
 void CheckForSet(void);
@@ -367,7 +369,7 @@ LCD16X2_Clear(MyLCD);
 LCD16X2_Set_Cursor(MyLCD,1,5);
 LCD16X2_Write_String(MyLCD,"SLC PLUS");
 LCD16X2_Set_Cursor(MyLCD,2,6);
-LCD16X2_Write_String(MyLCD," V2.7");
+LCD16X2_Write_String(MyLCD," V2.8");
 HAL_Delay(2000);
 LCD16X2_Clear(MyLCD);
 
@@ -510,7 +512,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     	LCD16X2_Init(MyLCD);
     	}
    }
-
+    //********************************TIMER 3 AC***************************************
+    if(htim==&htim3)
+    {
+    	TurnLoadsOffWhenGridOff();
+    }
 
    /* NOTE : This function should not be modified, when the callback is needed,
              the HAL_TIM_PeriodElapsedCallback could be implemented in the user file
@@ -887,6 +893,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
 
 	//-------------------------------------------AC_AVAILABLE_INTRUPPT----------------------------------------------------
+	/*
 	if (GPIO_Pin==AC_Available_Pin)
 	{
 
@@ -944,6 +951,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		}
 	} // end if current millis
   //end of ac
+   * */
+
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
    */
@@ -3852,7 +3861,7 @@ if (RunOnBatteryVoltageMode <0 || RunOnBatteryVoltageMode>1)
 
 if (UPSMode<0 || UPSMode > 1)
 {
-	UPSMode=1;
+	UPSMode=0;
 	Flash_Save();
 }
 
@@ -4039,7 +4048,7 @@ void Factory_Settings()
 	hours_lcd_timer3_stop=17;
 	minutes_lcd_timer3_stop=0;
 	RunOnBatteryVoltageMode=1; // default
-	UPSMode=1;
+	UPSMode=0;
 	delayTimerOff_1=25;
 	delayTimerOff_2=20;
 	delayTimerOff_3=15;
@@ -4147,10 +4156,12 @@ int main(void)
   MX_TIM1_Init();
   MX_I2C1_Init();
   MX_RTC_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   Config();
   Flash_Load();
   HAL_TIM_Base_Start_IT(&htim4); // for counting real seconds and make lcd off
+  HAL_TIM_Base_Start_IT(&htim3); // for ac interrupt generate interrupt every 20ms => preload=(Tout(20ms)*Fclk (16MHZ) )/ prescalar (16000)
  // DS1307_Init(&hi2c1);
 
   //-> to config relays at zero condition
@@ -4439,6 +4450,51 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 16000-1;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 16-1;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief TIM4 Initialization Function
   * @param None
   * @retval None
@@ -4529,11 +4585,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : Enter_Pin AC_Available_Pin */
-  GPIO_InitStruct.Pin = Enter_Pin|AC_Available_Pin;
+  /*Configure GPIO pin : Enter_Pin */
+  GPIO_InitStruct.Pin = Enter_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(Enter_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB10 PB11 PB12 PB13
                            PB14 PB15 */
@@ -4544,12 +4600,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : AC_Available_Pin */
+  GPIO_InitStruct.Pin = AC_Available_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(AC_Available_GPIO_Port, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 3, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
